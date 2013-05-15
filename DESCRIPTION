@@ -1,0 +1,10 @@
+Package: gitter
+Type: Package
+Title: Robust gridding and quantification of colony sizes
+Version: 1.0
+Date: 2013-04-18
+Author: Omar Wagih
+Maintainer: Omar Wagih <omar.wagih@utoronto.ca>
+Description: Robust gridding and quantification of colony sizes
+License: GPL-2
+Depends: jpeg, logging, multicore, EBImage
