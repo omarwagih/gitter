@@ -207,23 +207,23 @@
   return(im)
 }
 
-print.gitter <- function(x){
-  print('TODO')
-}
+# print.gitter <- function(x){
+#   print('TODO')
+# }
 # Plotting methods
-plot.gitter <- function(obj, color.low="red", color.med="black", color.high="green", row, col){
-  p <- ggplot(x, aes(x=col, y=row, fill=colonysize)) +
-    geom_tile(colour = "black",  asp=0.3) + 
-    scale_fill_gradient(low='black', high='yellow', limits=c(minColSize,maxColSize)) +
-    labs(x = "Column", y = "Row") +
-    scale_y_reverse() + 
-    scale_y_continuous(expand = c(0, 0), limits=c(1,32), breaks=1:32) + 
-    scale_x_continuous(expand = c(0, 0), limits=c(1,48),  breaks=1:48) + 
-    theme_bw(base_size=10)
-  
-  
-  qplot(x=col, y=row, data=x, fill=colonysize, geom="tile", color="black") 
-}
+# plot.gitter <- function(obj, color.low="red", color.med="black", color.high="green", row, col){
+#   p <- ggplot(x, aes(x=col, y=row, fill=colonysize)) +
+#     geom_tile(colour = "black",  asp=0.3) + 
+#     scale_fill_gradient(low='black', high='yellow', limits=c(minColSize,maxColSize)) +
+#     labs(x = "Column", y = "Row") +
+#     scale_y_reverse() + 
+#     scale_y_continuous(expand = c(0, 0), limits=c(1,32), breaks=1:32) + 
+#     scale_x_continuous(expand = c(0, 0), limits=c(1,48),  breaks=1:48) + 
+#     theme_bw(base_size=10)
+#   
+#   
+#   qplot(x=col, y=row, data=x, fill=colonysize, geom="tile", color="black") 
+# }
 
 .imageSpot <- function(x, title='Spot'){
   x = t(x)

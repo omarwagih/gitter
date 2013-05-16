@@ -57,7 +57,7 @@ gitter.batch <- function(image.files, ref.image.file=NA,
   }
   
   # Save failed plates
-  if(!is.null(failed.plates)){
+  if(length(failed.plates) > 0){
     failed.plates = c('# gitter failed plates', failed.plates)
     writeLines(failed.plates, failed.file)
   }
