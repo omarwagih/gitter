@@ -8,3 +8,5 @@ system('R CMD build gitter')
 
 system('mv gitter_1.0.tar.gz gitter/build/gitter_1.0.tar.gz')
 #install.packages('gitter_1.0.tar.gz', repos = NULL, type="source")
+
+detach("package:gitter", unload=TRUE)

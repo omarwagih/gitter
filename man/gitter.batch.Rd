@@ -2,61 +2,68 @@
 \alias{gitter.batch}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Batch gitter plate images
+Process a batch set of plate images
 }
 \description{
 This function will process a directory or list of images in a batch. You can also use this function to process images with sparse to empty rows/columns using a reference image.
 }
 \usage{
-gitter.batch(image.files, ref.image.file = NA, failed.file = file.path(getwd(), "gitter_failed_plates.txt"), logging = F, ...)
+gitter.batch(image.files, ref.image.file = NA, 
+             failed.file = file.path(getwd(), "gitter_failed_plates.txt"), 
+             logging = F, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{image.files}{
-  Directory containing JPG or JPEG images or a character vector of image paths
+  Directory containing JPG or JPEG images or a character vector of image paths.
 }
   \item{ref.image.file}{
   Specifies path to a reference image, if you are using a reference image to grid other images.
 }
   \item{failed.file}{
-  File where names of failed plates are stored
+  File where names of failed plates are stored.
+}
+  \item{logging}{
+  See parameters in \code{\link{gitter}}.
 }
   \item{\dots}{
-  Additional parameters passed to gitter
+  Additional parameters passed to \code{\link{gitter}}.
 }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
+%}
 \value{
+gitter.batch does not return any values. DAT and gridded files are saved to their respective directories.
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
-%%  ~~who you are~~
+Omar Wagih \email{omar.wagih@utoronto.ca}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
+\code{\link{gitter}}
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
 # Processing image using reference image
 
 # This image would typically fail to process, since its missing several rows
-f = system.file("data", "sample_dead.jpg", package="gitter")
+f = system.file("extdata", "sample_dead.jpg", package="gitter")
 # We will use this image to successfully process the above image
-f.ref = system.file("data", "sample.jpg", package="gitter")
+f.ref = system.file("extdata", "sample.jpg", package="gitter")
 # Process
 gitter.batch(f, f.ref)
 

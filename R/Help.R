@@ -72,12 +72,12 @@
   
 }
 
-.centerOfMass <- function(spot){
-  area = sum(spot)
-  y = sum( rowSums(s) * 1:nrow(s) )/area
-  x = sum( colSums(s) * 1:ncol(s) )/area
-  return(c(x,y))
-}
+# .centerOfMass <- function(spot){
+#   area = sum(spot)
+#   y = sum( rowSums(s) * 1:nrow(s) )/area
+#   x = sum( colSums(s) * 1:ncol(s) )/area
+#   return(c(x,y))
+# }
 
 # Rotation methods
 
