@@ -39,16 +39,22 @@
       
         <h3>Installation</h3>
 
-<p>To begin using gitter <a href="https://github.com/omarwagih/gitter/blob/master/build/gitter_1.0.tar.gz?raw=true">install the package in your R console</a></p>
+<p>To begin using gitter make sure the <a href="http://www.bioconductor.org/packages/release/bioc/html/EBImage.html" target="_blank">EBImage</a> package is installed from Bioconductor:</p>
 
-<pre class="prettyprint"><code>$ install.packages('gitter')
+<pre class="prettyprint"><code>source("http://bioconductor.org/biocLite.R")
+biocLite("EBImage")
+</code></pre>
+
+<p>then install gitter:</p>
+
+<pre class="prettyprint"><code>install.packages('gitter')
 </code></pre>
 
 <h3>Getting started</h3>
 
 <p>To get started, load the gitter package:</p>
 
-<pre class="prettyprint">$ install.packages('gitter_1.0.tar.gz', repos=NULL)</pre>
+<pre class="prettyprint">require(gitter)</pre>
 
 <p>Process a single sample image:</p>
 
@@ -63,7 +69,7 @@ head(dat)
 # output files by default are saved to your working directory
 </pre>
 
-<p>For further documentation on the parameters you can pass to gitter or how to process batch images try typing the following into your R console:</p>
+<p>For further documentation on the parameters or how to process batch images view the <a href="http://cran.r-project.org/web/packages/gitter/gitter.pdf" target="_blank">pdf manual</a> or try typing the following into your R console:</p>
 
 <pre class="prettyprint"><code>?gitter
 ?gitter.batch
