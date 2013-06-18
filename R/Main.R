@@ -1,10 +1,10 @@
-# setwd('~/Development/gitter/')
+# setwd('~/Development/gitter/R')
 # #Import packages
 # library('EBImage')
 # library('jpeg')
 # library('logging')
 # library('multicore')
-#
+# 
 # source('Peaks.R')
 # source('Help.R')
 
@@ -166,6 +166,8 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
     # Sum up rows / columns
     sum.y = rowSums(im.grey)
     sum.x = colSums(im.grey)
+#     sum.y = apply(im.grey, 1, var)
+#     sum.x = apply(im.grey, 2, var)
   }
   
   

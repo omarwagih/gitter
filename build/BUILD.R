@@ -1,4 +1,4 @@
-setwd('~/Development/gitter-git/')
+setwd('~/Development/gitter/')
 
 remove.packages('gitter', lib='/Library/Frameworks/R.framework/Versions/Current/Resources/library')
 
