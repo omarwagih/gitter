@@ -8,9 +8,7 @@ Process a batch set of plate images
 This function will process a directory or list of images in a batch. You can also use this function to process images with sparse to empty rows/columns using a reference image.
 }
 \usage{
-gitter.batch(image.files, ref.image.file = NA, 
-             failed.file = file.path(getwd(), "gitter_failed_plates.txt"), 
-             logging = F, ...)
+gitter.batch(image.files, ref.image.file = NA, logging = F, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -19,9 +17,6 @@ gitter.batch(image.files, ref.image.file = NA,
 }
   \item{ref.image.file}{
   Specifies path to a reference image, if you are using a reference image to grid other images.
-}
-  \item{failed.file}{
-  File where names of failed plates are stored.
 }
   \item{logging}{
   See parameters in \code{\link{gitter}}.

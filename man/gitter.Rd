@@ -9,8 +9,8 @@ The following function will grid and quantify a single plate image (for batch pr
 }
 \usage{
 gitter(image.file, plate.format = c(32, 48), remove.noise = F, autorotate = F, 
-       inverse = F, method = "kmeans", smooth.factor = 5, logging = T, 
-       contrast = NA, fast = F, fast.width = 1500, plate.edges = F, plot = F, 
+       inverse = F, method = "kmeans", logging = T, 
+       contrast = NA, fast = F, fast.width = 1500, plate.edges = T, plot = F, 
        gridded.save.dir = getwd(), dat.save.dir = getwd(), 
        .is.ref = F, .params = NA)
 }
@@ -34,9 +34,9 @@ gitter(image.file, plate.format = c(32, 48), remove.noise = F, autorotate = F,
   \item{method}{
   Method used for thesholding the image. If your image is noisy, has an uneven/cloudy background or contains really small colonies, use "tophat", otherwise use "kmeans". Default is "kmeans".
 }
-  \item{smooth.factor}{
-  Integer indicating how much intensity profiles are smoothed. If your images are noisy, consider increasing this value as needed. Default is "5".
-}
+%  \item{smooth.factor}{
+%  Integer indicating how much intensity profiles are smoothed. If your images are noisy, consider increasing this value as needed. Default is "5".
+%}
   \item{logging}{
   Logical indicating whether gitter should show logs while processing images. Default is "TRUE".
 }
@@ -50,7 +50,7 @@ gitter(image.file, plate.format = c(32, 48), remove.noise = F, autorotate = F,
   Integer indicating what the width of the resized image should be. This value is not used unless fast is "TRUE". Default is "1500".
 }
   \item{plate.edges}{
-  Logical indicating if plates contain edges. gitter will attempt to remove those edges, to improve gridding. Default is "FALSE".
+  Logical indicating if plates contain edges. gitter will consider only the central region of the image when computing intensity profiles, to improve gridding. Default is "TRUE".
 }
   \item{plot}{
  Logical indicating whether intensity profiles should be plotted. Default is "FALSE".
@@ -83,12 +83,12 @@ gitter(image.file, plate.format = c(32, 48), remove.noise = F, autorotate = F,
     col: \tab column number\cr
     size: \tab quantified colony size\cr
     circularity: \tab circularity of the colony\cr
-    x: \tab x-coordinate value of the colony centre\cr
-    y: \tab y-coordinate value of the colony centre\cr
-    xl: \tab coordinate defining left bound of the colony (x-left)\cr
-    xr: \tab coordinate defining right bound of the colony (x-right)\cr
-    yt: \tab coordinate defining top bound of the colony (y-top)\cr
-    yb: \tab coordinate defining bottom bound of the colony (y-bottom)\cr
+    %x: \tab x-coordinate value of the colony centre\cr
+    %y: \tab y-coordinate value of the colony centre\cr
+    %xl: \tab coordinate defining left bound of the colony (x-left)\cr
+    %xr: \tab coordinate defining right bound of the colony (x-right)\cr
+    %yt: \tab coordinate defining top bound of the colony (y-top)\cr
+    %yb: \tab coordinate defining bottom bound of the colony (y-bottom)\cr
   }
 }
 

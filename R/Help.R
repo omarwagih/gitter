@@ -81,53 +81,71 @@
 
 # Rotation methods
 
-# Autorotate
-.autoRotateImage <- function(im){
+
+.rotateAngle <- function(im.grey){
+  im = imageData(resize(im.grey, w=500))
+  # Resize image to square dimensions
+  m = min(dim(im))
+  im = im[1:m,1:m]
+  
+  # Radon transform
+  rad = radon(im)$rData
+  
+  # Compute row-wise variance & only allow +- 50 degrees
+  v = apply(rad, 1, var)
+  v[50:150] = 0
+  
+  return(which.max(v)-1)
+}
+
+.autoRotateImage2 <- function(im){
   ptm <- proc.time()
+  
   is.color = length(dim(im)) == 3
   bw = im
   if(is.color)
     bw = im[,,1]
   
-  bw = openingGreyScale(resize(bw, h=200), makeBrush(5, 'box'))
-  
-  t = .findOptimalThreshold(as.vector(bw), lim=c(0,1), cap=1)
-  bw = (bw > t)+0
-  
-  #   y = apply(bw, 2, function(col){
-  #     t = rle(col)
-  #     if(t$values[1] != 0){
-  #       1
-  #     }else{
-  #       t$lengths[1]
-  #     }
-  #   })
-  #   
-  #   y = y[(length(y)*0.30):(length(y)*0.60)]
-  #   sm = lowess(y, f=30)
-  #   plot(y)
-  #   res=lm(sm$y~sm$x)
-  #   abline(res$coefficients[1], res$coefficients[2], col='red')
-  #   
-  #   slope = res$coefficients[2]
-  
-  slope = .findSlope(bw)
-  rad = atan(slope)
-  deg = 360 - (rad*180/pi)
-  rad = deg * pi/180
-  loginfo('Rotate by %s degrees or %s radians',  deg, rad )
-  
-  if(deg >= 360) deg = deg-360
-  if(deg < 360) deg = 360-deg
-  #im.rot = rotateMatrix(im, rad, is.color)
-  im.rot = rotate(im, deg)
+  a = .rotateAngle(bw)
+  if(a > 90) a = a - 180
+  loginfo('Rotate by %s degrees',  a )
+  im.rot = t(EBImage::rotate(t(bw), a))
   
   el = proc.time() - ptm
   loginfo('Rotation took %s seconds', el[[3]])
-  
-  #writeJPEG(im.rot, '~/Desktop/rotated.jpg')
   return(im.rot)
 }
+
+# Autorotate
+# .autoRotateImage <- function(im){
+#   ptm <- proc.time()
+#   is.color = length(dim(im)) == 3
+#   bw = im
+#   if(is.color)
+#     bw = im[,,1]
+#   
+#   bw = openingGreyScale(resize(bw, h=200), makeBrush(5, 'box'))
+#   
+#   t = .findOptimalThreshold(as.vector(bw), lim=c(0,1), cap=1)
+#   bw = (bw > t)+0
+#   
+#   slope = .findSlope(bw)
+#   rad = atan(slope)
+#   deg = 360 - (rad*180/pi)
+#   rad = deg * pi/180
+#   loginfo('Rotate by %s degrees or %s radians',  deg, rad )
+#   
+#   if(deg >= 360) deg = deg-360
+#   if(deg < 360) deg = 360-deg
+#   #im.rot = rotateMatrix(im, rad, is.color)
+#   im.rot = rotate(im, deg)
+#   
+#   el = proc.time() - ptm
+#   loginfo('Rotation took %s seconds', el[[3]])
+#   
+#   #writeJPEG(im.rot, '~/Desktop/rotated.jpg')
+#   return(im.rot)
+# }
 
 # Depreciated, now using EBImage rotate
 .rotateMatrix <- function(im, theta, is.color=F){

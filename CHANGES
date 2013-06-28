@@ -1,0 +1,4 @@
+version 1.0.1
+- Changed rotation to a more robust method which uses radon transform
+- Fixed row/column bug where rows and columns were switched in the output
+- Removed smoothing for intensity profiles and added other preprocessing steps

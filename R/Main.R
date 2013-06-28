@@ -3,7 +3,8 @@
 # library('EBImage')
 # library('jpeg')
 # library('logging')
-# library('multicore')
+# library('parallel')
+# library('PET')
 # 
 # source('Peaks.R')
 # source('Help.R')
@@ -14,19 +15,22 @@
 
 .methods = c('kmeans', 'tophat')
 
-gitter.batch <- function(image.files, ref.image.file=NA, 
-                         failed.file=file.path(getwd(), 'gitter_failed_plates.txt'), logging=F, ...){
+gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
+  f = 'gitter_failed_images'
+  ff = list.files(pattern=f)
+  if(length(ff) > 0){
+    f = paste0(f, format(Sys.time(), "_%d-%m-%y_%H-%M-%S"))
+  }
+  failed.file = paste0(f, '.txt')
+  
   # Set logging
   logReset()
   if(logging) addHandler(writeToConsole, formatter=.defaultFormat)
   
-  if(!file.create(failed.file)) 
-    stop(sprintf('Invalid failed file: "%s". The failed file is the path of the file which will contain file names of failed plates (if any) after batch processing is completed.', failed.file))
-  
   is.dir = file.info(image.files[1])$isdir
   if(is.dir){
     image.files = image.files[1]
-    writeLines(sprintf('Reading images from directory: %s', image.files))
+    loginfo('Reading images from directory: %s', image.files)
     image.files = list.files(image.files, pattern='jpe?g$', full.names=T, ignore.case=T)
     if(length(image.files) == 0) stop('No images with JPEG or JPG extension found. Images must be JPG format, please convert any non-JPG images to JPG')
   }
@@ -58,7 +62,7 @@ gitter.batch <- function(image.files, ref.image.file=NA,
   
   # Save failed plates
   if(length(failed.plates) > 0){
-    failed.plates = c('# gitter failed plates', failed.plates)
+    failed.plates = c('# gitter failed images', failed.plates)
     writeLines(failed.plates, failed.file)
   }
   #dats = lapply(image.files, gitter, ..., .params=params, .is.ref=F)
@@ -68,8 +72,8 @@ gitter.batch <- function(image.files, ref.image.file=NA,
 
 
 gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate=F, inverse=F, 
-                         method="kmeans", smooth.factor=5, logging=T, contrast=NA, fast=F, fast.width=1500,
-                         plate.edges=F, plot=F, gridded.save.dir=getwd(), dat.save.dir=getwd(), 
+                         method="kmeans", logging=T, contrast=NA, fast=F, fast.width=1500,
+                         plate.edges=T, plot=F, gridded.save.dir=getwd(), dat.save.dir=getwd(), 
                          .is.ref=F, .params=NA){
   
   
@@ -113,11 +117,6 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
     im = resize(im, w=1000)
   }
   
-  if(autorotate){
-    loginfo('Autorotating image...')
-    im = .autoRotateImage(im)
-  }
-  
   # Extract greyscale
   if(is.color){
     loginfo('\tDetected color image, extracting greyscale')
@@ -125,6 +124,12 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
     im.grey = (im[,,1]*0.72) + (im[,,2]*0.21) + (im[,,3]*0.07)
   }else{
     loginfo('\tDetected greyscale image')
+  }
+  
+  
+  if(autorotate){
+    loginfo('Autorotating image...')
+    im.grey = .autoRotateImage2(im.grey)
   }
   
   if(!is.na(contrast)){
@@ -155,19 +160,27 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   }
   
   if(plate.edges){
-    loginfo('Eroding plate edges for peak detection...')
-    kern = matrix(0,3,9)
-    kern[2,] = 1
-    z1 = openingGreyScale(im.grey, kern)
-    z2 = openingGreyScale(im.grey, t(kern))
-    sum.y = rowSums(z2)
-    sum.x = colSums(z1)
+#     loginfo('Eroding plate edges for peak detection...')
+#     kern = matrix(0,3,9)
+#     kern[2,] = 1
+#     z1 = openingGreyScale(im.grey, kern)
+#     z2 = openingGreyScale(im.grey, t(kern))
+#     sum.y = rowSums(z2)
+#     sum.x = colSums(z1)
+    loginfo('Use central 60% for intensity profiles...')
+    nc = ncol(im.grey)
+    nr = nrow(im.grey)
+    sum.y = rowSums(im.grey[,(0.2 * nc):(0.8 * nc)])
+    sum.x = colSums(im.grey[(0.2 * nr):(0.8 * nr),])
   }else{
     # Sum up rows / columns
+    nc = ncol(im.grey)
+    nr = nrow(im.grey)
     sum.y = rowSums(im.grey)
     sum.x = colSums(im.grey)
-#     sum.y = apply(im.grey, 1, var)
-#     sum.x = apply(im.grey, 2, var)
+    
+#     sum.y = apply(im.grey[,(0.2 * nc):(0.8 * nc)], 1, var)
+#     sum.x = apply(im.grey[(0.2 * nr):(0.8 * nr),], 2, var)
   }
   
   
@@ -175,13 +188,15 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
     # Get peaks of sums
     if(plot) par(mfrow=c(2,1), bty='n', las=1)
     loginfo('Getting row peaks...')
-    cp.y = .getColonyPeaks(sum.y, n=nrow, smooth.factor, plot)
+    #cp.y = .getColonyPeaks(sum.y, n=nrow, smooth.factor, plot)
+    cp.y = .getColonyPeaks2(sum.y, n=nrow, plot)
     loginfo('Getting column peaks...')
-    cp.x = .getColonyPeaks(sum.x, n=ncol, smooth.factor, plot)
+    #cp.x = .getColonyPeaks(sum.x, n=ncol, smooth.factor, plot)
+    cp.x = .getColonyPeaks2(sum.x, n=ncol, plot)
     
     # Average window (though they should be the same)
     w = round(mean( c(cp.x$window, cp.y$window) ))
-    
+      
     # Get center coordinates
     coords = expand.grid(cp.x$peaks, cp.y$peaks)
     names(coords) = c('x', 'y')
@@ -230,7 +245,7 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   coords[,c('yt', 'yb')][coords[,c('yt', 'yb')] > nrow(im.grey)] = nrow(im.grey)
   
   # Generate rows and columns to be bound to coords below
-  rc = expand.grid(1:nrow, 1:ncol)
+  rc = expand.grid(1:ncol, 1:nrow)[,c(2,1)]
   names(rc) = c('row', 'col')
   results = cbind(rc, coords)
   
@@ -260,6 +275,10 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   # Save dat file
   if(!is.na(dat.save.dir) & !.is.ref){
     save = file.path(dat.save.dir, paste0(basename(image.file), '.dat'))
+    
+    results[[4]] = round(results[[4]], 4)
+    results = results[,1:4]
+    
     write.table(results, file=save, quote=F, sep='\t', row.names=F)
     loginfo('Saved dat file to: %s', save)
   }
