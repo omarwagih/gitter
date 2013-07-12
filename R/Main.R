@@ -1,19 +1,42 @@
-# setwd('~/Development/gitter/R')
+# z = setwd('~/Development/gitter/R')
 # #Import packages
 # library('EBImage')
 # library('jpeg')
 # library('logging')
 # library('parallel')
 # library('PET')
+# library('ggplot2')
 # 
 # source('Peaks.R')
 # source('Help.R')
+# 
+# setwd(z)
+
+GITTER_VERSION = '1.0.1'
+.methods = c('kmeans', 'tophat')
+.pf = list('1536'=c(32,48), '384'=c(16,24), '96'=c(8,12))  
+
+gitter.example <- function(eg='single'){
+  if(!eg %in% c('single', 'ref')) stop('Invalid example')
+  
+  if(eg == 'single'){
+    dat = gitter(system.file("extdata", "sample.jpg", package="gitter"))
+    p <- plot.gitter(dat, title=sprintf('gitter v%s single image example', GITTER_VERSION))
+    print(p)
+    browseURL(f)
+    summary(dat)
+  }
+  if(eg == 'ref'){
+    f = system.file("extdata", "sample_dead.jpg", package="gitter")
+    f.ref = system.file("extdata", "sample.jpg", package="gitter")
+    gitter.batch(f, f.ref)
+    warning(sprintf('NOTE: Output files were saved to working directory at %s', getwd()))
+  }
+}
 
 .defaultFormat <- function(record) {
   text <- paste(paste(record$timestamp, record$levelname, record$logger, record$msg, sep=':'))
 }
-
-.methods = c('kmeans', 'tophat')
 
 gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
   f = 'gitter_failed_images'
@@ -71,11 +94,24 @@ gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
 }
 
 
-gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate=F, inverse=F, 
-                         method="kmeans", logging=T, contrast=NA, fast=F, fast.width=1500,
-                         plate.edges=T, plot=F, gridded.save.dir=getwd(), dat.save.dir=getwd(), 
-                         .is.ref=F, .params=NA){
+gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise=F, autorotate=F, inverse=F,
+                   method="kmeans", logging=T, contrast=NA, fast=F, fast.width=1500, plot=F, 
+                   gridded.save.dir=getwd(), dat.save.dir=getwd(), 
+                   .is.ref=F, .params=NA){
   
+  # Check if we have one number plate formats
+  if(length(plate.format) == 1){
+    t = as.character(plate.format)
+    if(t %in% names(.pf)){
+      plate.format = .pf[[t]]
+    }else{
+      stop('Invalid plate density, please use 1536, 384 or 96. If the density of your plate is not listed, you can specifcy a vector of the number of rows and columns in your plate (e.g. c(32,48))')
+    }
+  }
+  # Check for incorrect plate formats
+  if(length(plate.format) != 2){
+    stop('Invalid plate format, plate formats must be a vector of the number of rows and columns (e.g. c(32,48)) or a value indicating the density of the plate (e.g 1536, 384 or 96) possible')
+  }
   
   if(!method %in% .methods) 
     stop(sprintf('Invalid method, possible methods are: %s', paste(.methods, collapse=', ')))
@@ -114,7 +150,7 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   
   if(fast){
     loginfo('Resizing image...')
-    im = resize(im, w=1000)
+    im = resize(im, h=fast.width)
   }
   
   # Extract greyscale
@@ -159,7 +195,9 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
     
   }
   
-  if(plate.edges){
+  sum.y = rowSums(im.grey)
+  sum.x = colSums(im.grey)
+  
 #     loginfo('Eroding plate edges for peak detection...')
 #     kern = matrix(0,3,9)
 #     kern[2,] = 1
@@ -167,21 +205,7 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
 #     z2 = openingGreyScale(im.grey, t(kern))
 #     sum.y = rowSums(z2)
 #     sum.x = colSums(z1)
-    loginfo('Use central 60% for intensity profiles...')
-    nc = ncol(im.grey)
-    nr = nrow(im.grey)
-    sum.y = rowSums(im.grey[,(0.2 * nc):(0.8 * nc)])
-    sum.x = colSums(im.grey[(0.2 * nr):(0.8 * nr),])
-  }else{
-    # Sum up rows / columns
-    nc = ncol(im.grey)
-    nr = nrow(im.grey)
-    sum.y = rowSums(im.grey)
-    sum.x = colSums(im.grey)
-    
-#     sum.y = apply(im.grey[,(0.2 * nc):(0.8 * nc)], 1, var)
-#     sum.x = apply(im.grey[(0.2 * nr):(0.8 * nr),], 2, var)
-  }
+
   
   
   if(is.ref){
@@ -258,10 +282,6 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   
   class(results) = c('gitter', 'data.frame')
   
-  # Save important attributes
-  attr(results, 'params') = params
-  attr(results, 'elapsed') = elapsed
-  attr(results, 'call') = match.call()
   
   # Save gridded image
   if(!is.na(gridded.save.dir) & !.is.ref){
@@ -269,7 +289,7 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
     imr = .drawRect(coords[,3:6], im.grey)
     save = file.path(gridded.save.dir, paste0('gridded_',basename(image.file)))
     loginfo('Saved gridded image to: %s', save)
-    writeJPEG(imr, save, 1)
+    writeJPEG(imr, save)
   }
   
   # Save dat file
@@ -287,6 +307,13 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   gc(reset=T, verbose=F)
   
   loginfo('Time elapsed: %s seconds', elapsed)
+  
+  # Save important attributes
+  attr(results, 'params') = params
+  attr(results, 'elapsed') = elapsed
+  attr(results, 'call') = match.call()
+  attr(results, 'file') = image.file
+  attr(results, 'format') = plate.format
   return(results)
 }
 
@@ -376,4 +403,87 @@ gitter <- function(image.file, plate.format=c(32,48), remove.noise=F, autorotate
   x_s = as.vector(z2$lag)[ which.max(as.vector(z2$acf)) ]
   
   return(translate(im, c(y_s,x_s)))
+}
+
+
+
+plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
+                        show.text=F, text.color='white', norm=T, 
+                        show.circ=T, circ.cutoff=0.6, circ.color='white'){
+  
+  if(is.character(dat)) dat = read.table(dat, stringsAsFactors=F, header=T)
+  if(!is.data.frame(dat) & ! 'gitter' %in% class(dat)) stop('Data must be a data path or data frame generated by gitter')
+  if(!type %in% c('heatmap', 'bubble')) stop('Invalid plot type. Use "heatmap" or "bubble"')
+  
+  if(length(dat) > 4 | length(dat) < 3) stop('Invalid number of columns for dat file')
+  
+  names(dat) = c('r', 'c', 's')
+  dat.cs = NULL
+  
+  
+  
+  r = max(dat$r)
+  c = max(dat$c)
+  
+  t = r:1
+  names(t) = 1:r
+  dat$r = t[as.character(dat$r)]
+  
+  
+  m = mean(dat$s, na.rm=T)
+  if(norm){
+    z = quantile(1:nrow(dat), c(0.4, 0.6))
+    m = mean(dat$s[z[1]:z[2]], na.rm=T)
+    dat$s = dat$s / m 
+    dat$s[dat$s > 2] = 2
+    m = mean(dat$s[z[1]:z[2]], na.rm=T)
+  }
+  
+  if(length(dat) == 4){
+    names(dat)[4] = 'circ'
+    dat.cs = dat[dat$circ < circ.cutoff & !is.na(dat$circ),] 
+  }
+  
+  if(type == 'heatmap'){
+    p <- ggplot(dat, aes(x = c, y = r, fill = s)) + 
+      geom_tile(color='black') +
+      scale_fill_gradient2(midpoint=m, low=low, high=high, mid=mid) + 
+      scale_x_discrete(expand = c(0, 0), limits = as.character(1:c)) +
+      scale_y_discrete(expand = c(0, 0), limits = as.character(r:1)) + 
+      coord_equal() +
+      theme_bw() +
+      labs(list(title = title, x = "Column", y = "Row", fill = "Size")) + 
+      theme(legend.position="right",title=element_text(size=14,face="bold"))
+  }
+  if(type == 'bubble'){
+    p = ggplot(dat, aes(x = c, y = r)) + 
+      geom_point(aes(x = c, y = r, size = s, colour = s),shape=16, alpha=0.80) +
+      scale_colour_gradient(low=low, high=high) +
+      scale_x_discrete(limits = as.character(1:c)) +
+      scale_y_discrete(limits = as.character(r:1)) +
+      coord_equal() +
+      labs(list(title = title, x = "Column", y = "Row", color = "Size", size=""))+
+      theme_bw() +
+      theme(title=element_text(size=14,face="bold"))
+  }
+  if(show.circ & !is.null(dat.cs) & nrow(dat.cs) != 0){
+    p = p + geom_point(aes(x=c, y=r), data=dat.cs, color=circ.color, size=1)
+  }
+  
+  if(show.text) p = p + geom_text(color = text.color, aes(label=s), size=3)
+  return(p)
+}
+
+summary.gitter <- function(d){
+  pf = attr(d, 'format')
+  call = attr(d, 'call')
+  writeLines(sprintf('###########################\n# gitter V%s data file #\n###########################', GITTER_VERSION))
+  writeLines(sprintf('Function call: %s', deparse(call)))
+  writeLines(sprintf('Elapsed time: %s secs', attr(d, 'elapsed')))
+  writeLines(sprintf('Plate format: %s × %s (%s)', pf[1], pf[2], prod(pf)))
+  writeLines('Colony size statistics:')
+  print(summary(d[[3]]))
+  writeLines('Dat file (showing 6 rows):')
+  print(head(d))
+  
 }

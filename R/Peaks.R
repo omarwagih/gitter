@@ -1,11 +1,14 @@
 
 .estimateWindow <- function(y){
+  #Get middle 60%
+  m = quantile(1:length(y), c(0.25, 0.75))
+  y = y[m[1]:m[2]]
   length(y) / (which.max(Re(fft(y-mean(y)))[1:(length(y)/2)]) - 1)
 }
 
 .getColonyPeaks2 <- function(x, n, plot=T){
   
-  w = .estimateWindow(x) * 1.3
+  w = .estimateWindow(x)
   
   loginfo('Estimated window size: %s', w)
   max.win = (length(x) / n)
