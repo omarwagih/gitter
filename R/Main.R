@@ -20,7 +20,8 @@ gitter.example <- function(eg='single'){
   if(!eg %in% c('single', 'ref')) stop('Invalid example')
   
   if(eg == 'single'){
-    dat = gitter(system.file("extdata", "sample.jpg", package="gitter"))
+    f = system.file("extdata", "sample.jpg", package="gitter")
+    dat = gitter(f)
     p <- plot.gitter(dat, title=sprintf('gitter v%s single image example', GITTER_VERSION))
     print(p)
     browseURL(f)
