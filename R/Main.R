@@ -12,20 +12,20 @@
 # 
 # setwd(z)
 
-GITTER_VERSION = '1.0.1'
+.GITTER_VERSION = '1.0.2'
 .methods = c('kmeans', 'tophat')
-.pf = list('1536'=c(32,48), '384'=c(16,24), '96'=c(8,12))  
+.pf = list('1536'=c(32,48),'768'=c(32,48),'384'=c(16,24),'96'=c(8,12))  
 
-gitter.example <- function(eg='single'){
+gitter.demo <- function(eg='single'){
   if(!eg %in% c('single', 'ref')) stop('Invalid example')
   
   if(eg == 'single'){
     f = system.file("extdata", "sample.jpg", package="gitter")
     dat = gitter(f)
-    p <- plot.gitter(dat, title=sprintf('gitter v%s single image example', GITTER_VERSION))
+    p <- gitter.plot(dat, title=sprintf('gitter v%s single image example', .GITTER_VERSION))
     print(p)
     browseURL(f)
-    summary(dat)
+    gitter.summary(dat)
   }
   if(eg == 'ref'){
     f = system.file("extdata", "sample_dead.jpg", package="gitter")
@@ -39,7 +39,7 @@ gitter.example <- function(eg='single'){
   text <- paste(paste(record$timestamp, record$levelname, record$logger, record$msg, sep=':'))
 }
 
-gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
+gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
   f = 'gitter_failed_images'
   ff = list.files(pattern=f)
   if(length(ff) > 0){
@@ -47,9 +47,9 @@ gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
   }
   failed.file = paste0(f, '.txt')
   
-  # Set logging
+  # Set verbose
   logReset()
-  if(logging) addHandler(writeToConsole, formatter=.defaultFormat)
+  if(verbose == 'l') addHandler(writeToConsole, formatter=.defaultFormat)
   
   is.dir = file.info(image.files[1])$isdir
   if(is.dir){
@@ -63,16 +63,16 @@ gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
   if(!all(z)) stop(sprintf('Files "%s" do not exist', paste0(image.files[!z], collapse=', ')))
   
   params = NA
-  is.ref = !is.na(ref.image.file)
+  is.ref = !is.null(ref.image.file)
   if(is.ref){
     loginfo('Processing reference image: %s', ref.image.file)
-    r = gitter(ref.image.file, ..., .is.ref=T)
+    r = gitter(ref.image.file, verbose=verbose, .is.ref=T, ..., )
     params = attr(r, 'params')
   }
   
   failed.plates = c()
   for(image.file in image.files){
-    result = tryCatch({ gitter(image.file, ..., .params=params, .is.ref=F) }, 
+    result = tryCatch({ gitter(image.file, .params=params, .is.ref=F, verbose=verbose,...) }, 
                 error = function(e) { 
                   logerror('Failed to process "%s", skipping', image.file)
                   e
@@ -95,10 +95,9 @@ gitter.batch <- function(image.files, ref.image.file=NA, logging=F, ...){
 }
 
 
-gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise=F, autorotate=F, inverse=F,
-                   method="kmeans", logging=T, contrast=NA, fast=F, fast.width=1500, plot=F, 
-                   gridded.save.dir=getwd(), dat.save.dir=getwd(), 
-                   .is.ref=F, .params=NA){
+gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise=F, autorotate=F, 
+                   inverse=F, verbose='l', contrast=NULL, fast=NULL, plot=F, grid.save=getwd(), 
+                   dat.save=getwd(), .is.ref=F, .params=NULL){
   
   # Check if we have one number plate formats
   if(length(plate.format) == 1){
@@ -114,111 +113,130 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     stop('Invalid plate format, plate formats must be a vector of the number of rows and columns (e.g. c(32,48)) or a value indicating the density of the plate (e.g 1536, 384 or 96) possible')
   }
   
-  if(!method %in% .methods) 
-    stop(sprintf('Invalid method, possible methods are: %s', paste(.methods, collapse=', ')))
-  if(!is.na(contrast) & contrast < 0) 
-    stop('Contrast cannot be a negative value')
+  if(!verbose %in% c('l', 'p', 'n')) 
+    stop('Invalid verbose parameter, use "l" to show the log, "p" to show a progress bar or "n" for no verbose')
+  if(!is.null(contrast)){
+    if(contrast <= 0) stop('Contrast value must be positive')
+  } 
   if(grepl('^gridded', basename(image.file))) 
     warning('Detected gridded image as input')
-  if(!is.na(gridded.save.dir)){
-    if(!file.info(gridded.save.dir)$isdir) 
-      stop(sprintf('Invalid gridded directory "%s"', gridded.save.dir))
+  if(!is.null(grid.save)){
+    if(!file.info(grid.save)$isdir) 
+      stop(sprintf('Invalid gridded directory "%s"', grid.save))
   }
-  if(!is.na(dat.save.dir)){
-    if(!file.info(dat.save.dir)$isdir) 
-      stop(sprintf('Invalid dat directory "%s"', gridded.save.dir))
+  if(!is.null(dat.save)){
+    if(!file.info(dat.save)$isdir) 
+      stop(sprintf('Invalid dat directory "%s"', grid.save))
   }
-  if(fast.width < 1000 | fast.width > 4000) 
-    stop('Resize width must be between 1000-4000px')
+  is.fast = !is.null(fast)
+  if(is.fast){
+    if(fast < 1500 | fast > 4000) stop('Fast resize width must be between 1500-4000px')
+  } 
+   
   
   expf = 1.5
   params = as.list(environment(), all=TRUE)
   nrow = plate.format[1]
   ncol = plate.format[2]
   # Are we using a reference screen?
-  is.ref = all(is.na(.params))
+  is.ref = all(is.null(.params))
   ptm <- proc.time()
   
-  # Set logging
+  # Set verbose
   logReset()
-  if(logging) addHandler(writeToConsole, formatter=.defaultFormat)
+  if(verbose == 'l') addHandler(writeToConsole, formatter=.defaultFormat)
   
+  prog = verbose == 'p' 
+  if(!prog) pb <- NULL
+  if(prog){
+    cat(file.path(dirname(image.file), basename(image.file)), '\n')
+    pb <- txtProgressBar(min = 0, max = 100, style = 3)
+  }
   # Read image
   loginfo('Reading image from: %s', image.file)
+  if(prog) setTxtProgressBar(pb, 5)
+  
   im = readJPEG(image.file)
   is.color = (length(dim(im)) == 3)
-  im.grey = im
   
-  if(fast){
+  if(is.fast){
+    if(prog) setTxtProgressBar(pb, 7)
     loginfo('Resizing image...')
-    im = resize(im, h=fast.width)
+    im = resize(im, h=fast)
   }
   
   # Extract greyscale
   if(is.color){
+    if(prog) setTxtProgressBar(pb, 9)
     loginfo('\tDetected color image, extracting greyscale')
     # Luminosity grey scale from GIMP
     im.grey = (im[,,1]*0.72) + (im[,,2]*0.21) + (im[,,3]*0.07)
   }else{
     loginfo('\tDetected greyscale image')
+    im.grey = im
   }
   
   
   if(autorotate){
+    if(prog) setTxtProgressBar(pb, 14)
     loginfo('Autorotating image...')
     im.grey = .autoRotateImage2(im.grey)
   }
   
-  if(!is.na(contrast)){
+  if(!is.null(contrast)){
+    if(prog) setTxtProgressBar(pb, 15)
     loginfo('\tIncreasing image contrast with factor %s', contrast)
     im.grey = .setContrast(im.grey, contrast)
   }
   
   if(inverse){
+    if(prog) setTxtProgressBar(pb, 17)
     loginfo('Inversing image')
     im.grey = 1 - im.grey 
   }
   
   if(!is.ref){
+    if(prog) setTxtProgressBar(pb, 18)
     loginfo('Non-reference plate, registering image to reference')
     # Fix any shifts 
     im.grey = .register2d(im.grey, .params$row.sums, .params$col.sums)
   }
   
-  if(grepl('tophat', method)){
-    si = round((nrow(im.grey) / nrow) * 1.0)
-    loginfo('Opening image with kernel size %s', si)
-    kern = makeBrush(si, 'box')
-    im.grey = whiteTopHatGreyScale(im.grey, kern)
-    #im.grey = setContrast(im.grey, -10)
-    thresh = .findOptimalThreshold(im.grey)
-    im.grey = (im.grey >= thresh)+0
-    
+  if(prog) setTxtProgressBar(pb, 20)
+  im.grey = .threshold(im.grey, nrow, ncol, fast=T, f=1000, pb)
+  
+  if(remove.noise){
+    # Remove the noise
+    if(prog) setTxtProgressBar(pb, 50)
+    loginfo('Denoising image... ')
+    kern = makeBrush(3, 'diamond')
+    im.grey = openingGreyScale(im.grey, kern)
   }
   
-  sum.y = rowSums(im.grey)
-  sum.x = colSums(im.grey)
+  if(prog) setTxtProgressBar(pb, 55)
+  #sum.y = rowSums(im.grey)
+  loginfo('Computing row sums')
+  sum.y = .rmRle(im.grey, p=0.2, 1)
   
-#     loginfo('Eroding plate edges for peak detection...')
-#     kern = matrix(0,3,9)
-#     kern[2,] = 1
-#     z1 = openingGreyScale(im.grey, kern)
-#     z2 = openingGreyScale(im.grey, t(kern))
-#     sum.y = rowSums(z2)
-#     sum.x = colSums(z1)
+  if(prog) setTxtProgressBar(pb, 60)
+  loginfo('Computing column sums')
+  sum.x = .rmRle(im.grey, p=0.2, 2)
+  
+  #sum.x = colSums(im.grey)
 
-  
-  
   if(is.ref){
     # Get peaks of sums
     if(plot) par(mfrow=c(2,1), bty='n', las=1)
+    z = nrow*ncol
     loginfo('Getting row peaks...')
-    #cp.y = .getColonyPeaks(sum.y, n=nrow, smooth.factor, plot)
-    cp.y = .getColonyPeaks2(sum.y, n=nrow, plot)
-    loginfo('Getting column peaks...')
-    #cp.x = .getColonyPeaks(sum.x, n=ncol, smooth.factor, plot)
-    cp.x = .getColonyPeaks2(sum.x, n=ncol, plot)
+    if(prog) setTxtProgressBar(pb, 65)
+    cp.y = .colonyPeaks(sum.y, n=nrow,z, plot)
     
+    loginfo('Getting column peaks...')
+    if(prog) setTxtProgressBar(pb, 70)
+    cp.x = .colonyPeaks(sum.x, n=ncol,z, plot)
+    
+    if(prog) setTxtProgressBar(pb, 73)
     # Average window (though they should be the same)
     w = round(mean( c(cp.x$window, cp.y$window) ))
       
@@ -228,16 +246,18 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     
     params$window = w
     params$coords = coords
-    params$row.sums = sum.y
-    params$col.sums = sum.x
+    params$row.sums = rowSums(im.grey)
+    params$col.sums = colSums(im.grey)
   }else{
     w = .params$window
     coords = .params$coords
   }
   
+  
   # Window expansion factor
   d = round(w * expf)
   
+  if(prog) setTxtProgressBar(pb, 75)
   #Pad image
   im.pad =  .padmatrix(im.grey, w, 1)
   
@@ -247,21 +267,11 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   coords$yt = coords$y - d
   coords$yb = coords$y + d
   
-  if(! grepl('tophat', method)){
-    loginfo('Binarizing image... ')
-    im.pad = .getKmeansImage(im.pad, coords)
-  }
-  
-  if(remove.noise){
-    # Remove the noise
-    loginfo('Denoising image... ')
-    kern = makeBrush(3, 'diamond')
-    im.pad = dilateGreyScale(erodeGreyScale(im.pad, kern), kern)
-  }
-  
-  loginfo('Fitting rectangles... ')
+  loginfo('Fitting bounds...')
+  if(prog) setTxtProgressBar(pb, 80)
   coords = .fitRects(coords, im.pad, w)
   
+  if(prog) setTxtProgressBar(pb, 84)
   im.grey = .unpadmatrix(im.pad, w)
   
   coords[,c('x','y','xl','xr','yt','yb')] = coords[,c('x','y','xl','xr','yt','yb')]-w
@@ -283,19 +293,22 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   class(results) = c('gitter', 'data.frame')
   
-  
+  if(prog) setTxtProgressBar(pb, 90)
   # Save gridded image
-  if(!is.na(gridded.save.dir) & !.is.ref){
+  if(!is.null(grid.save) & !.is.ref){
     #imr = drawPeaks(peaks.c=cp.y$peaks, peaks.r=cp.x$peaks, imr)
     imr = .drawRect(coords[,3:6], im.grey)
-    save = file.path(gridded.save.dir, paste0('gridded_',basename(image.file)))
+    save = file.path(grid.save, paste0('gridded_',basename(image.file)))
     loginfo('Saved gridded image to: %s', save)
+    
+    if(prog) setTxtProgressBar(pb, 93)
     writeJPEG(imr, save)
   }
   
+  if(prog) setTxtProgressBar(pb, 98)
   # Save dat file
-  if(!is.na(dat.save.dir) & !.is.ref){
-    save = file.path(dat.save.dir, paste0(basename(image.file), '.dat'))
+  if(!is.null(dat.save) & !.is.ref){
+    save = file.path(dat.save, paste0(basename(image.file), '.dat'))
     
     results[[4]] = round(results[[4]], 4)
     results = results[,1:4]
@@ -315,30 +328,93 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   attr(results, 'call') = match.call()
   attr(results, 'file') = image.file
   attr(results, 'format') = plate.format
+  
+  if(prog) setTxtProgressBar(pb, 100)
+  if(prog) close(pb)
   return(results)
 }
 
-.getKmeansImage <- function(im, coords){
-  coords = coords[,c('xl', 'xr', 'yt', 'yb')]
-  cent = .getMeans(im)
-  ret = im
-  t = matrix(T, nrow(im), ncol(im))
-  for(i in 1:nrow(coords)){
-    z = as.numeric(coords[i,])
-    spot = im[z[3]:z[4],z[1]:z[2]]
-    im.spot.vec = c(cent, spot)
-    #cent = c(min(im.spot.vec), max(im.spot.vec))
-    cl = kmeans(im.spot.vec, cent)
-    cls = cl$cluster[-(1:2)] - 1
-    spot.bw = matrix(cls, nrow=nrow(spot))
-    ret[z[3]:z[4],z[1]:z[2]] = spot.bw
-    t[z[3]:z[4],z[1]:z[2]] = F
+# .getKmeansImage <- function(im, coords){
+#   coords = coords[,c('xl', 'xr', 'yt', 'yb')]
+#   cent = .getMeans(im)
+#   ret = im
+#   t = matrix(T, nrow(im), ncol(im))
+#   for(i in 1:nrow(coords)){
+#     z = as.numeric(coords[i,])
+#     spot = im[z[3]:z[4],z[1]:z[2]]
+#     im.spot.vec = c(cent, spot)
+#     #cent = c(min(im.spot.vec), max(im.spot.vec))
+#     cl = kmeans(im.spot.vec, cent)
+#     cls = cl$cluster[-(1:2)] - 1
+#     spot.bw = matrix(cls, nrow=nrow(spot))
+#     ret[z[3]:z[4],z[1]:z[2]] = spot.bw
+#     t[z[3]:z[4],z[1]:z[2]] = F
+#   }
+#   
+#   ret[t] = ( ret[t] > 0.7 )+0
+#   return(ret)
+# }
+
+.threshold <- function(im.grey, nrow, ncol, fast=T, f=1000, pb){
+  prog = !is.null(pb)
+  ptm <- proc.time()
+  if(prog) setTxtProgressBar(pb, 22)
+  if(fast){
+    loginfo('Running fast background correction')
+    im = resize(im.grey, h=f)
+    si = round((nrow(im) / nrow) * 1.0)
+    loginfo('Opening image with kernel size %s', si)
+    kern = makeBrush(.roundOdd(si), 'box')
+    if(prog) setTxtProgressBar(pb, 25)
+    op = openingGreyScale(im, kern)
+    if(prog) setTxtProgressBar(pb, 32)
+    op = resize(op, w=nrow(im.grey), h=ncol(im.grey))
+    if(prog) setTxtProgressBar(pb, 39)
+    im.grey = im.grey - op
+    im.grey[im.grey<0]=0
+    # Find threshold
+    if(prog) setTxtProgressBar(pb, 42)
+    thresh = .findOptimalThreshold(resize(im.grey, h=f))
+  }else{
+    loginfo('Running background correction')
+    si = round((nrow(im.grey) / nrow) * 1.0)
+    loginfo('Opening image with kernel size %s', si)
+    kern = makeBrush(.roundOdd(si), 'box')
+    if(prog) setTxtProgressBar(pb, 32)
+    im.grey = whiteTopHatGreyScale(im.grey, kern)
+    # Find threshold
+    if(prog) setTxtProgressBar(pb, 39)
+    thresh = .findOptimalThreshold(im.grey)
   }
   
-  ret[t] = ( ret[t] > 0.7 )+0
-  return(ret)
+  if(prog) setTxtProgressBar(pb, 48)
+  im.grey = (im.grey >= thresh)+0
+  
+  e = round( (proc.time() - ptm)[[3]], 2)
+  loginfo('Thresholding took %s seconds', e)
+  return(im.grey)
 }
 
+.rmRle <- function(im, p=0.2, margin=1){
+  c = p * nrow(im)
+  if(margin == 2){
+    c = p * ncol(im)
+  }
+  z = apply(im, MARGIN=margin, function(x){
+    r = rle(x)
+    any(r$lengths[r$values == 1] > c)
+  })
+  
+  if(margin==1) x = rowSums(im)
+  if(margin==2) x = colSums(im)
+  
+  zh = .splitHalf(z)
+  if(sum(zh$left) > 0) x[1:max( which(zh$left) )] = 0
+  if(sum(zh$right) > 0) x[min( which(zh$right) + length(zh$left) ) : length(x)] = 0
+  
+  #x[z] = median(x)
+  return(x)
+}
 
 .xl <- function(z, w){ m = which(z == min(z)); t = length(z) - m[length(m)]; if(t < w) t = w; return(t) }
 .xr <- function(z, w){ t = which.min(z); if(t < w) t = w; return(t) }
@@ -408,7 +484,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
 
 
 
-plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
+gitter.plot <- function(dat, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
                         show.text=F, text.color='white', norm=T, 
                         show.circ=T, circ.cutoff=0.6, circ.color='white'){
   
@@ -420,8 +496,6 @@ plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='bla
   
   names(dat) = c('r', 'c', 's')
   dat.cs = NULL
-  
-  
   
   r = max(dat$r)
   c = max(dat$c)
@@ -475,13 +549,13 @@ plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='bla
   return(p)
 }
 
-summary.gitter <- function(d){
+gitter.summary <- function(d){
   pf = attr(d, 'format')
   call = attr(d, 'call')
-  writeLines(sprintf('###########################\n# gitter V%s data file #\n###########################', GITTER_VERSION))
+  writeLines(sprintf('###########################\n# gitter V%s data file #\n###########################', .GITTER_VERSION))
   writeLines(sprintf('Function call: %s', deparse(call)))
   writeLines(sprintf('Elapsed time: %s secs', attr(d, 'elapsed')))
-  writeLines(sprintf('Plate format: %s × %s (%s)', pf[1], pf[2], prod(pf)))
+  writeLines(sprintf('Plate format: %s x %s (%s)', pf[1], pf[2], prod(pf)))
   writeLines('Colony size statistics:')
   print(summary(d[[3]]))
   writeLines('Dat file (showing 6 rows):')

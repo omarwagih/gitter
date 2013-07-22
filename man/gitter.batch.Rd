@@ -8,17 +8,17 @@ Process a batch set of plate images
 This function will process a directory or list of images in a batch. You can also use this function to process images with sparse to empty rows/columns using a reference image.
 }
 \usage{
-gitter.batch(image.files, ref.image.file = NA, logging = F, ...)
+gitter.batch(image.files, ref.image.file = NULL, verbose = 'l', ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{image.files}{
-  Directory containing JPG or JPEG images or a character vector of image paths.
+  Directory containing JPG or JPEG images OR a character vector of image paths.
 }
   \item{ref.image.file}{
-  Specifies path to a reference image, if you are using a reference image to grid other images.
+  Specifies path to a reference image, which will be used to grid images specified in image.files.
 }
-  \item{logging}{
+  \item{verbose}{
   See parameters in \code{\link{gitter}}.
 }
   \item{\dots}{

@@ -8,58 +8,45 @@ Process a single plate image
 The following function will grid and quantify a single plate image (for batch processing, see \code{\link{gitter.batch}})
 }
 \usage{
-gitter(image.file, plate.format = c(32, 48), remove.noise = F, autorotate = F, 
-       inverse = F, method = "kmeans", logging = T, 
-       contrast = NA, fast = F, fast.width = 1500, plate.edges = T, plot = F, 
-       gridded.save.dir = getwd(), dat.save.dir = getwd(), 
-       .is.ref = F, .params = NA)
+gitter(image.file = file.choose(), plate.format = c(32, 48),
+       remove.noise = F, autorotate = F, inverse = F, verbose = "l",
+       contrast = NULL, fast = NULL, plot = F, grid.save = getwd(), 
+       dat.save = getwd(), .is.ref = F, .params = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{image.file}{
-  The path to the JPG/JPEG image
+  The path to the JPG/JPEG image. Defaults to a file choosing dialog.
 }
   \item{plate.format}{
-  The plate format, which comprises of the number of rows and columns on the plate as an integer vector. Default is "c(32, 48)".
+  The plate format, accepted formats: 1536, 768, 384 and 96. Alternatively, you can provide the number of rows and columns on the plate as an integer vector for example "c(32,48)". Default is "1536".
 }
   \item{remove.noise}{
-  Logical indicating noise/speckles should be remove from the image prior to quantification. Default is "FALSE". 
+  Logical indicating noise/speckles should be remove from the thresholded image prior to analysis. Default is "FALSE". 
 }
   \item{autorotate}{
-  Logical indicating if image should be autorotated prior to processing. Only select this option if image is extremley rotated. gitter is able to handle small variations in rotations (1-3 degrees) without autorotating. Default is "FALSE".
+  Logical indicating if image should be auto-rotated prior to processing. Only select this option if image is extremely rotated. gitter is able to handle small variations in rotations (1-2 degrees) without auto-rotating. Default is "FALSE".
 }
   \item{inverse}{
   Logical indicating if input image is inverted, meaning colonies are darker compared to their background. Default is "FALSE".
 }
-  \item{method}{
-  Method used for thesholding the image. If your image is noisy, has an uneven/cloudy background or contains really small colonies, use "tophat", otherwise use "kmeans". Default is "kmeans".
-}
-%  \item{smooth.factor}{
-%  Integer indicating how much intensity profiles are smoothed. If your images are noisy, consider increasing this value as needed. Default is "5".
-%}
-  \item{logging}{
-  Logical indicating whether gitter should show logs while processing images. Default is "TRUE".
+  \item{verbose}{
+  Shows details about the results of running job. For detailed logs "l", for a progress bar "p" or for no output "n". Default is "l".
 }
   \item{contrast}{
-  Integer indicating how much contrast should be applied to the image, prior to processing. Default is "NA".
+  Integer indicating how much contrast should be applied to the image, prior to processing. A value of "NULL" will not apply any contrast. Default is "NULL".
 }
   \item{fast}{
-  Logical indicating if images should be resized to a certain width to speed up processing. See fast.width to specify a value. Default is "FALSE".
-}
-  \item{fast.width}{
-  Integer indicating what the width of the resized image should be. This value is not used unless fast is "TRUE". Default is "1500".
-}
-  \item{plate.edges}{
-  Logical indicating if plates contain edges. gitter will consider only the central region of the image when computing intensity profiles, to improve gridding. Default is "TRUE".
+  Pixel value between 1500-4000 indicating if images should be resized to a certain width to speed up processing. If "NULL", no resizing occurs. Default is "NULL".
 }
   \item{plot}{
  Logical indicating whether intensity profiles should be plotted. Default is "FALSE".
 }
-  \item{gridded.save.dir}{
- Directory path to save gridded/thresholded images. Set to "NA" if you do not want gridded images saved to disk. Default is the current working directory.
+  \item{grid.save}{
+ Directory path to save gridded/thresholded images. Set to "NULL" if you do not want gridded images saved to disk. Default is the current working directory.
 }
-  \item{dat.save.dir}{
-  Directory path to save dat files. Set to "NA" if you do not want dat files saved to disk. Default is the current working directory.
+  \item{dat.save}{
+  Directory path to save dat files. Set to "NULL" if you do not want dat files saved to disk. Default is the current working directory.
 }
 
 \item{.is.ref}{

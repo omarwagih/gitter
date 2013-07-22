@@ -1,3 +1,11 @@
+version 1.0.2
+- Reduced two thresholding methods to one
+- Added progress bar
+- Changed estimate window function
+- Added demo function
+- Bug fixes
+- Updated documentation
+
 version 1.0.1
 - Changed rotation to a more robust method which uses radon transform
 - Fixed row/column bug where rows and columns were switched in the output

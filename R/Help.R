@@ -8,6 +8,12 @@
   return(im)
 }
 
+.roundOdd <- function(x){
+  x = floor(x)
+  if(x %% 2 == 0) x = x+1
+  x
+}
+
 #Adds a padding to some matrix mat such that the padding is equal to the value of the nearest cell
 #Inputs:
 #  mat = matrix to which the padding is added
@@ -37,7 +43,7 @@
 }
 
 # Global thresholding 
-.findOptimalThreshold <- function(x, r=3, lim=c(0, 0.4), cap=0.2){
+.findOptimalThreshold <- function(x, r=2, lim=c(0, 0.4), cap=0.2){
   x[x<lim[1]] = 0
   x[x>lim[2]] = 0
   t = round(mean(x), r)
