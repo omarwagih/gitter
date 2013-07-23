@@ -18,14 +18,20 @@
 	    	background-size:100%;
     	}
     </style>
-    <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+    <link rel="stylesheet" href="./javascripts/highlight.js/styles/solarized_light.css">
+    <script src="./javascripts/highlight.js/highlight.pack.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+        
   </head>
   <body>
     <div class="wrapper">
       <header>
         <img src="images/gitter_logo.png" alt="gitter logo">
         <p>Gridding and quantification of pinned colonies </p>
-
+        <small>Version 1.0.2</small>
+        
         <!--<p class="view"><a href="https://github.com/omarwagih/gitter">View the Project on GitHub <small>omarwagih/gitter</small></a></p>-->
 
         <ul>
@@ -36,50 +42,94 @@
       </header>
       <section>
       
-      <p style="color:#FF0000"><b>Warning:</b> gitter is still in beta, meaning that it is still undergoing user testing and is not yet considered appropriate for the general audience</p>
+      <!--<p style="color:#FF0000"><b>Warning:</b> gitter is still in beta, meaning that it is still undergoing user testing and is not yet considered appropriate for the general audience</p>-->
       
         <h3>Installation</h3>
 
 <p>To begin using gitter make sure the <a href="http://www.bioconductor.org/packages/release/bioc/html/EBImage.html" target="_blank">EBImage</a> package is installed from Bioconductor:</p>
 
-<pre class="prettyprint"><code>source("http://bioconductor.org/biocLite.R")
+<pre><code>source("http://bioconductor.org/biocLite.R")
 biocLite("EBImage")
 </code></pre>
 
-<p>then install gitter:</p>
+<p>then install and load gitter:</p>
 
-<pre class="prettyprint"><code>install.packages('gitter')
-</code></pre>
+<pre><code>install.packages('gitter')
+require(gitter)</code></pre>
 
 <h3>Getting started</h3>
 
-<p>To get started, load the gitter package:</p>
+<p>To get started, let's process a single image</p>
 
-<pre class="prettyprint">require(gitter)</pre>
+<img src="images/sample.jpg">
 
-<p>Process a single sample image:</p>
-
-<pre class="prettyprint"># Read sample image path
+<br>
+<br>
+<pre><code># Get the sample image path
 f = system.file("extdata", "sample.jpg", package="gitter")
 # Process it
-dat = gitter(f)
+dat = gitter(f, 1536, verbose='p')
 # View head of the results
 head(dat)
+</code></pre>
 
-# Remember:
-# output files by default are saved to your working directory
-</pre>
+<p>It's that simple! Two output files are saved to your working directory.</p>
 
-<p>For further documentation on the parameters or how to process batch images view the <a href="http://cran.r-project.org/web/packages/gitter/gitter.pdf" target="_blank">pdf manual</a> or try typing the following into your R console:</p>
+<ol>
+    <li><b>Data file</b> is a tab-delimited text file with the quantified colony sizes</li>
+    <li><b>Gridded image</b> is the thresholded image showing the bounds computed for each colony (see below - click to zoom)</li>
+</ol>
+    
+    
+<a target="_blank" href="images/gridded_sample.jpg"><img src="images/gridded_sample.jpg"></a>
 
-<pre class="prettyprint"><code>?gitter
+<br>
+<br>
+<h3>Visualizing your results</h3>
+    
+<p>For visual validation, gitter has a built in plotting function which allows you to generate a heatmap and/or a bubble plot</p>
+
+<pre><code># Plot a heatmap
+gitter.plot(dat, type='heatmap')
+# Plot a bubble plot with small colonies as black
+# and large colonies as red 
+gitter.plot(dat, type='bubble', low='black', high='red')
+</code></pre>
+
+<img src="images/heatmap.png" style="width:49%">
+<img src="images/bubble.png" style="width:50%">
+
+<p>White dots on the plots represent colonies with a low circularity (the exact threshold can be adjusted as a parameter).</p>
+<p>You can adjust the colours defining the colony sizes as needed</p>
+<pre><code># Plot a heatmap with custom colours
+gitter.plot(dat, type='heatmap', low='red', mid='black', high='green')
+</code></pre>
+
+
+<img src="images/heatmap_custom.png" style="width:100%">
+
+
+<p>and overlay colony size values</p>
+<pre><code># Plot a heatmap with custom colours and overlaid size values
+gitter.plot(dat, type='heatmap', 
+	    low='red', mid='black', high='green', show.text=T)
+</code></pre>
+
+
+<center><img src="images/heatmap_text.png" style="width:100%"></center>
+<br>
+<br>
+<h3>Documentation</h3>
+<p>For further documentation on the parameters or how to process batch images view the <a href="http://cran.r-project.org/web/packages/gitter/gitter.pdf" target="_blank">pdf manual on CRAN</a> or type the following into your R console</p>
+
+<pre><code>?gitter
 ?gitter.batch
+?gitter.plot
 </code></pre>
 
-<p>For information on the package:</p>
+<p>For information on the package</p>
 
-<pre class="prettyprint"><code>?Rgitter
-</code></pre>
+<pre><code>?Rgitter</code></pre>
 
 <h3>Authors and contributors</h3>
 
@@ -89,13 +139,12 @@ head(dat)
 
 <p>A lot of time and effort went into developing gitter. If you use it in your research, please cite:</p>
 
-<h3>Support or Contact</h3>
+<h3>Support or contact</h3>
 
-<p>Having trouble with gitter? Check out the documentation as mentioned above or <a href="mailto:omar.wagih@utoronto.ca">contact us</a> and we’ll help you sort it out</p>
+<p>If you have a suggestion, or feature request please post it in the <a href="https://github.com/omarwagih/gitter/issues" target="_blank">issues section</a>. If you're having trouble with gitter, check out the documentation as mentioned above or <a href="mailto:omar.wagih@utoronto.ca">contact us</a> and we’ll help you sort it out</p>
       </section>
       <footer>
-        <p style="margin-bottom:0px">This project is maintained by <a href="https://github.com/omarwagih">Omar Wagih</a></p>
-        <small>v 1.0.1 beta</small>
+        <p style="margin-bottom:0px">Project maintained by <a href="https://github.com/omarwagih">Omar Wagih</a></p>
       </footer>
     </div>
     <script src="javascripts/scale.fix.js"></script>

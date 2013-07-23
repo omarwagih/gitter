@@ -2,8 +2,8 @@
 
 body {
   padding:50px;
-  font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color:#777;
+  font:15px Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color:#999;
   font-weight:300;
 }
 
@@ -46,7 +46,7 @@ a small {
 }
 
 .wrapper {
-  width:860px;
+  width:1000px;
   margin:0 auto;
 }
 
@@ -60,9 +60,10 @@ blockquote {
 code, pre {
   font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
   color:#333;
-  font-size:12px;
+  font-size:14px;
 }
 
+/*
 pre {
   padding:8px 15px;
   background: #f8f8f8;  
@@ -70,6 +71,7 @@ pre {
   border:1px solid #e5e5e5;
   overflow-x: auto;
 }
+*/
 
 table {
   width:100%;
@@ -96,7 +98,7 @@ img {
 }
 
 header {
-  width:270px;
+  width:300px;
   float:left;
   position:fixed;
 }
@@ -160,7 +162,7 @@ header ul a strong {
 }
 
 section {
-  width:500px;
+  width:650px;
   float:right;
   padding-bottom:50px;
 }
