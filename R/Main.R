@@ -1,16 +1,16 @@
-# z = setwd('~/Development/gitter/R')
-# #Import packages
-# library('EBImage')
-# library('jpeg')
-# library('logging')
-# library('parallel')
-# library('PET')
-# library('ggplot2')
-# 
-# source('Peaks.R')
-# source('Help.R')
-# 
-# setwd(z)
+z = setwd('~/Development/gitter/R')
+#Import packages
+library('EBImage')
+library('jpeg')
+library('logging')
+library('parallel')
+library('PET')
+library('ggplot2')
+
+source('Peaks.R')
+source('Help.R')
+
+setwd(z)
 
 .GITTER_VERSION = '1.0.2'
 .methods = c('kmeans', 'tophat')
@@ -62,7 +62,7 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
   z = sapply(image.files, file.exists)
   if(!all(z)) stop(sprintf('Files "%s" do not exist', paste0(image.files[!z], collapse=', ')))
   
-  params = NA
+  params = NULL
   is.ref = !is.null(ref.image.file)
   if(is.ref){
     loginfo('Processing reference image: %s', ref.image.file)
@@ -75,6 +75,7 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
     result = tryCatch({ gitter(image.file, .params=params, .is.ref=F, verbose=verbose,...) }, 
                 error = function(e) { 
                   logerror('Failed to process "%s", skipping', image.file)
+                  if(verbose == 'p') cat('\n')
                   e
                 })
     
@@ -138,8 +139,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   params = as.list(environment(), all=TRUE)
   nrow = plate.format[1]
   ncol = plate.format[2]
-  # Are we using a reference screen?
-  is.ref = all(is.null(.params))
+  
   ptm <- proc.time()
   
   # Set verbose
@@ -195,6 +195,8 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     im.grey = 1 - im.grey 
   }
   
+  # Are we using a reference screen?
+  is.ref = is.null(.params)
   if(!is.ref){
     if(prog) setTxtProgressBar(pb, 18)
     loginfo('Non-reference plate, registering image to reference')
@@ -213,14 +215,15 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     im.grey = openingGreyScale(im.grey, kern)
   }
   
+  
   if(prog) setTxtProgressBar(pb, 55)
   #sum.y = rowSums(im.grey)
   loginfo('Computing row sums')
-  sum.y = .rmRle(im.grey, p=0.2, 1)
+  sum.y = .rmRle(im.grey, p=0.6, 1)
   
   if(prog) setTxtProgressBar(pb, 60)
   loginfo('Computing column sums')
-  sum.x = .rmRle(im.grey, p=0.2, 2)
+  sum.x = .rmRle(im.grey, p=0.6, 2)
   
   #sum.x = colSums(im.grey)
 
@@ -230,7 +233,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     z = nrow*ncol
     loginfo('Getting row peaks...')
     if(prog) setTxtProgressBar(pb, 65)
-    cp.y = .colonyPeaks(sum.y, n=nrow,z, plot)
+    cp.y = .colonyPeaks(sum.y, n=nrow, z, plot)
     
     loginfo('Getting column peaks...')
     if(prog) setTxtProgressBar(pb, 70)
@@ -302,7 +305,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     loginfo('Saved gridded image to: %s', save)
     
     if(prog) setTxtProgressBar(pb, 93)
-    writeJPEG(imr, save)
+    writeJPEG(imr, save,1)
   }
   
   if(prog) setTxtProgressBar(pb, 98)
@@ -362,7 +365,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   if(fast){
     loginfo('Running fast background correction')
     im = resize(im.grey, h=f)
-    si = round((nrow(im) / nrow) * 1.0)
+    si = round((nrow(im) / nrow) * 1.5)
     loginfo('Opening image with kernel size %s', si)
     kern = makeBrush(.roundOdd(si), 'box')
     if(prog) setTxtProgressBar(pb, 25)
@@ -504,7 +507,6 @@ gitter.plot <- function(dat, title='', type='heatmap', low='turquoise', mid='bla
   names(t) = 1:r
   dat$r = t[as.character(dat$r)]
   
-  
   m = mean(dat$s, na.rm=T)
   if(norm){
     z = quantile(1:nrow(dat), c(0.4, 0.6))
@@ -519,6 +521,8 @@ gitter.plot <- function(dat, title='', type='heatmap', low='turquoise', mid='bla
     dat.cs = dat[dat$circ < circ.cutoff & !is.na(dat$circ),] 
   }
   
+  # Round data to 2
+  dat$s = round(dat$s, 2)
   if(type == 'heatmap'){
     p <- ggplot(dat, aes(x = c, y = r, fill = s)) + 
       geom_tile(color='black') +
@@ -560,5 +564,4 @@ gitter.summary <- function(d){
   print(summary(d[[3]]))
   writeLines('Dat file (showing 6 rows):')
   print(head(d))
-  
 }

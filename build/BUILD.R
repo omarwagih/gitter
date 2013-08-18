@@ -1,6 +1,6 @@
 setwd('~/Development/')
 
-remove.packages('gitter', lib='/Library/Frameworks/R.framework/Versions/Current/Resources/library')
+#remove.packages('gitter', lib='/Library/Frameworks/R.framework/Versions/Current/Resources/library')
 
 system('rm -rf gitter/build/gitter_1.0.2.tar.gz')
 #system('rm -rf gitter/man/*')

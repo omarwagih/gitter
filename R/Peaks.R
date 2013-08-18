@@ -20,7 +20,7 @@
   
   pks = sort(diff(pks), decreasing=T)
   pks = pks[1:(length(pks)/2)]
-  return(median(pks))
+  return(median(pks, na.rm=T))
 }
 
 
@@ -60,10 +60,12 @@
     loginfo('Window too large, changing to %s', w)
   }
   
+  x = c(rep(0, w), x, rep(0, w))
   cr = .sinCor(x, w)
+  cr = cr[(w+1): (length(cr)-w)]
   
   rn = 1:length(cr)
-  pe = .getPeaks(cr,floor( w/2 ))
+  pe = .getPeaks(cr,floor( w/3 ))
   rp = rn[pe]
   pv = cr[pe]
   

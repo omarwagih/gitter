@@ -217,10 +217,25 @@
   
   for(i in 1:nrow(rects)){
     rect = as.numeric(rects[i,])
+    im[rect[3]:rect[4],rect[1],] = 0
+    im[rect[3]:rect[4],rect[2],] = 0
+    im[rect[3],rect[1]:rect[2],] = 0
+    im[rect[4],rect[1]:rect[2],] = 0
+    
+#     im[(rect[3]-1):(rect[4]+1),rect[1]-1,] = 0
+#     im[(rect[3]-1):(rect[4]+1),rect[2]+1,] = 0
+#     im[rect[3]-1,(rect[1]-1):(rect[2]+1),] = 0
+#     im[rect[4]+1,(rect[1]-1):(rect[2]+1),] = 0
+    
     im[rect[3]:rect[4],rect[1],color] = int
     im[rect[3]:rect[4],rect[2],color] = int
     im[rect[3],rect[1]:rect[2],color] = int
     im[rect[4],rect[1]:rect[2],color] = int
+    
+#     im[(rect[3]-1):(rect[4]+1),rect[1]-1,color] = int
+#     im[(rect[3]-1):(rect[4]+1),rect[2]+1,color] = int
+#     im[rect[3]-1,(rect[1]-1):(rect[2]+1),color] = int
+#     im[rect[4]+1,(rect[1]-1):(rect[2]+1),color] = int
   }
   return(im)
 }
