@@ -17,11 +17,31 @@
 	    	background-image:url('images/dots-bg.png');
 	    	background-size:100%;
     	}
+    	h3 { cursor: pointer; cursor: hand; }
+    	summary::-webkit-details-marker {
+ color: #00ACF3;
+ font-size: 30px;
+ margin-right: 2px;
+}
     </style>
     <link rel="stylesheet" href="./javascripts/highlight.js/styles/solarized_light.css">
     <script src="./javascripts/highlight.js/highlight.pack.js"></script>
+    <script src="./javascripts/jquery-1.9.1.min.js"></script>
+    <script src="./javascripts/jquery.cookie.js"></script>
+    <script src="./javascripts/jquery.collapsible.js"></script>
     <script>
         hljs.initHighlightingOnLoad();
+        
+        $(document).ready(function() {
+        
+    //collapsible management
+    $('.collapsibleZ').collapsible({
+      defaultOpen: 'install',
+      speed: 100,
+    cookieName: 'collapsible'
+    });
+    $('#install').collapsible('open');
+  });
     </script>
         
   </head>
@@ -29,7 +49,7 @@
     <div class="wrapper">
       <header>
         <img src="images/gitter_logo.png" alt="gitter logo">
-        <p>Gridding and quantification of pinned colonies </p>
+        <p>Quantification and visualisation of pinned colonies </p>
         <small>Version 1.0.2</small>
         
         <!--<p class="view"><a href="https://github.com/omarwagih/gitter">View the Project on GitHub <small>omarwagih/gitter</small></a></p>-->
@@ -39,14 +59,17 @@
           <li><a href="http://cran.r-project.org/web/packages/gitter/" target="_blank">View on <strong>CRAN</strong></a></li>
           <li><a href="https://github.com/omarwagih/gitter">View on <strong>GitHub</strong></a></li>
         </ul>
+        
       </header>
       <section>
       
       <!--<p style="color:#FF0000"><b>Warning:</b> gitter is still in beta, meaning that it is still undergoing user testing and is not yet considered appropriate for the general audience</p>-->
-      
-        <h3>Installation</h3>
+     
 
-<p>To begin using gitter make sure the <a href="http://www.bioconductor.org/packages/release/bioc/html/EBImage.html" target="_blank">EBImage</a> package is installed from Bioconductor:</p>
+
+<div class="collapsible" id="install"><h3>Installation</h3></div>
+<div>
+<p>To begin using gitter make sure your R version >3.0 and that the <a href="http://www.bioconductor.org/packages/release/bioc/html/EBImage.html" target="_blank">EBImage</a> package is installed from Bioconductor:</p>
 
 <pre><code>source("http://bioconductor.org/biocLite.R")
 biocLite("EBImage")
@@ -57,8 +80,28 @@ biocLite("EBImage")
 <pre><code>install.packages('gitter')
 require(gitter)</code></pre>
 
-<h3>Getting started</h3>
+</div>
 
+<div class="collapsible"><h3>Quick start</h3></div>
+<div>
+To check out some gitter demos, try the following!
+<br><br>
+<pre><code># Run a simple demo
+gitter.demo('single');
+</code></pre>
+
+This shows gitter being used to process a single image.
+If you have a reference image, and you would like to use it to process another image, try this demo:
+<br><br>
+<pre><code># Run a simple demo
+gitter.demo('ref');
+</code></pre>
+
+</div>
+
+<div class="collapsible"><h3>Getting started</h3></div>
+
+<div>
 <p>To get started, let's process a single image</p>
 
 <img src="images/sample.jpg">
@@ -67,8 +110,10 @@ require(gitter)</code></pre>
 <br>
 <pre><code># Get the sample image path
 f = system.file("extdata", "sample.jpg", package="gitter")
-# Process it
-dat = gitter(f, 1536, verbose='p')
+# For your own images, just supply the path to the image:
+# f = "/path/to/my/file.jpg"
+# Process it, giving information on the progress
+dat = gitter(f, plate.format=1536, verbose='p')
 # View head of the results
 head(dat)
 </code></pre>
@@ -85,8 +130,11 @@ head(dat)
 
 <br>
 <br>
-<h3>Visualizing your results</h3>
+</div>
+
+<div class="collapsible"><h3>Visualizing your results</h3></div>
     
+<div>
 <p>For visual validation, gitter has a built in plotting function which allows you to generate a heatmap and/or a bubble plot</p>
 
 <pre><code># Plot a heatmap
@@ -119,7 +167,17 @@ gitter.plot(dat, type='heatmap',
 <center><img src="images/heatmap_text.png" style="width:100%"></center>
 <br>
 <br>
-<h3>Documentation</h3>
+</div>
+
+
+<div class="collapsible"><h3>FAQs</h3></div>
+<div>
+FAQs coming soon!
+<br><br>
+</div>
+
+<div class="collapsible"><h3>Documentation</h3></div>
+<div>
 <p>For further documentation on the parameters or how to process batch images view the <a href="http://cran.r-project.org/web/packages/gitter/gitter.pdf" target="_blank">pdf manual on CRAN</a> or type the following into your R console</p>
 
 <pre><code>?gitter
@@ -130,14 +188,17 @@ gitter.plot(dat, type='heatmap',
 <p>For information on the package</p>
 
 <pre><code>?Rgitter</code></pre>
+</div>
+
 
 <h3>Authors and contributors</h3>
 
-<p>gitter was built by <a href="mailto:omar.wagih@utoronto.ca">Omar Wagih</a> and <a href="mailto:leopold.parts@utoronto.ca">Leopold Parts</a> at the <a href="http://tdccbr.med.utoronto.ca/">Donnelly Centre for Cellular and Biomolecular Research</a>, <a>University of Toronto</a></p>
+<p>gitter was developed by <a href="mailto:omar.wagih@utoronto.ca">Omar Wagih</a> and <a href="mailto:leopold.parts@utoronto.ca">Leopold Parts</a> at the <a href="http://tdccbr.med.utoronto.ca/">Donnelly Centre for Cellular and Biomolecular Research</a>, <a>University of Toronto</a></p>
 
 <h3>Citation</h3>
 
 <p>A lot of time and effort went into developing gitter. If you use it in your research, please cite:</p>
+<p><b>Omar Wagih and Leopold Parts. gitter: a robust and accurate method for quantification of colony sizes from plate images (2013) - Unpublished</b></p>
 
 <h3>Support or contact</h3>
 
