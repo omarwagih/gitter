@@ -45,6 +45,8 @@ html, body {
 	margin: 0;
 	height: 100%;
 	color: #444;
+	width:100%;  
+	overflow-x: hidden;
 }
 
 a, a:hover, a:active {
