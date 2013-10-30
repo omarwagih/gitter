@@ -214,6 +214,14 @@ a.button {
 	padding-left: 7px;
 	z-index: 3;
 }
+#fb_btn {
+	position: fixed;
+	bottom: 30px;
+	left: 190px;
+	width: 100px;
+	padding-left: 7px;
+	z-index: 3;
+}
 #github_stars:hover {
 	-webkit-filter: none;
 }
