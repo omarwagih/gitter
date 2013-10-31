@@ -210,11 +210,21 @@ a.button {
 #github_stars {
 	position: fixed;
 	bottom: 30px;
-	left: 110px;
+	left: 105px;
 	width: 100px;
 	padding-left: 7px;
 	z-index: 3;
 }
+
+#fb_btn {
+	position: fixed;
+	bottom: 29px;
+	left: 182px;
+	width: 100px;
+	padding-left: 7px;
+	z-index: 3;
+}
+
 #github_stars:hover {
 	-webkit-filter: none;
 }
