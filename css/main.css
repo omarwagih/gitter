@@ -180,7 +180,8 @@ a.button {
 	padding: 0.5rem 1rem;
 	color: #fff;
 	cursor: pointer;
-	font-size: 1rem;
+	/*font-size: 1rem;*/
+	font-size: 50%;
 	text-transform: uppercase;
 	letter-spacing: .1em;
 	text-decoration: none;
@@ -210,14 +211,6 @@ a.button {
 	position: fixed;
 	bottom: 30px;
 	left: 110px;
-	width: 100px;
-	padding-left: 7px;
-	z-index: 3;
-}
-#fb_btn {
-	position: fixed;
-	bottom: 30px;
-	left: 190px;
 	width: 100px;
 	padding-left: 7px;
 	z-index: 3;
