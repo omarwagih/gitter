@@ -7,4 +7,4 @@ Author: Omar Wagih, Leopold Parts
 Maintainer: Omar Wagih <omar.wagih@utoronto.ca>
 Description: gitter is a image analysis package for R. Its primary goal is to allow users to robustly and quickly grid and quantify biological images of pinned colonies. It includes several image pre-processing techniques, such as autorotation of plates, noise removal, contrast adjustment and image resizing.
 License: CC BY-NC-SA 3.0
-Depends: jpeg, logging, parallel, PET, ggplot2, EBImage
+Depends: jpeg, tiff, logging, parallel, PET, ggplot2, EBImage

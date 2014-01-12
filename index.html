@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)http://github.hubspot.com/offline/docs/welcome/ -->
+<html>
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        
+        <title>gitter – an R package for quantification of pinned microbial cultures</title>
+       
+        <script type="text/javascript" src="./index_files/modernizr.min.js"></script>
+        <script src="./js/jquery.min.js"></script>
+    	<script src="./js/highlight.pack.js"></script>
+    	<script src="https://apis.google.com/js/plusone.js"></script>
+    	
+        <link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900' rel='stylesheet' type='text/css'>
+        
+        <link rel="stylesheet" href="./css/solarized_light.css">
+        <link rel="stylesheet" href="./css/main.css">
+    	<script>hljs.initHighlightingOnLoad();</script>
+    	
+    	<script src="./js/scale.fix.js"></script>
+        <script type="text/javascript">
+        	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+        <script type="text/javascript">
+            try { 
+            	var pageTracker = _gat._getTracker("UA-39148235-2");
+            	pageTracker._trackPageview();
+            } catch(err) {}
+        </script>
+    	
+    </head>
+    <body>
+        <div class="section colored">
+            <div class="page">
+                <div class="header" style="padding: 3%">
+                    <!--<h1>gitter</h1>-->
+                    <img src="images/gitter.png" style="height:35%">
+                    <h3 class="subtitle">an R package for quantification of pinned microbial cultures.</h3>
+                    <div class="vspace">
+                    </div>
+                    <h3><a class="button" href="https://github.com/omarwagih/gitter" target="_blank"> On GitHub</a>&nbsp;
+                    	<a class="button" href="http://cran.r-project.org/web/packages/gitter/" target="_blank" style="display:inline"> On CRAN</a>&nbsp;
+                    	<a class="button" href="https://github.com/omarwagih/gitter/blob/master/build/gitter_1.0.2.tar.gz?raw=true" style="display:inline" target="_blank"> Source</a>
+                    	
+                    </h3>
+                    
+                    <small>v 1.0.2</small>
+                </div>
+            </div>
+            <div class="down-arrow">⇪</div>
+        </div>
+
+        <div class="section">
+            <div class="page">
+
+
+<!--INSTALLATION-->  
+<h2>Installation</h2>
+<p>To begin using gitter make sure you're using R version &gt;3.0 and that the <a href="http://www.bioconductor.org/packages/release/bioc/html/EBImage.html" target="_blank">EBImage</a> package is installed from Bioconductor:</p>
+
+<pre><code class="r"><span class="keyword">source</span>("http://bioconductor.org/biocLite.R"</span>)
+biocLite("EBImage"</span>)
+</code></pre>
+
+<p>then install and load gitter:</p>
+
+<pre><code class="r">install.packages('gitter')
+<span class="keyword">require</span>(gitter)</code></pre>
+
+
+<!--QUICK START-->
+<h2>Quick start</h2>
+To check out some gitter demos, try the following!
+
+<pre><code># Run a simple demo
+gitter.demo('single');
+</code></pre>
+
+This shows gitter being used to process a single image.
+If you have a reference image, and you would like to use it to process another image, try this demo:
+
+<pre><code># Run a simple demo
+gitter.demo('ref');
+</code></pre>
+
+
+
+
+<!--GETTING STARTED-->  
+<h2>Getting started</h2>
+<p>To get started, let's process a single image</p>
+
+<img src="images/sample.jpg">
+
+<pre><code class="r"># Get the sample image path
+f = system.file("extdata", "sample.jpg", package="gitter")
+# For your own images, just supply the path to the image:
+# f = "/path/to/my/file.jpg"
+# Process it, giving information on the progress
+dat = gitter(f, plate.format=1536, verbose='p')
+# View head of the results
+head(dat)
+</code></pre>
+
+<p>It's that simple! Two output files are saved to your working directory.</p>
+
+<ol>
+    <li><b>Data file</b> is a tab-delimited text file with the quantified colony sizes</li>
+    <li><b>Gridded image</b> is the thresholded image showing the bounds computed for each colony (see below - click to zoom)</li>
+</ol>
+    
+<a target="_blank" href="images/gridded_sample.jpg"><img src="images/gridded_sample.jpg"></a>
+
+
+
+
+
+
+<!--VISUALIZE RESULTS-->
+<h2>Visualizing your results</h2>
+<p>For visual validation, gitter has a built in plotting function which allows you to generate a heatmap and/or a bubble plot</p>
+
+<pre><code># Plot a heatmap
+gitter.plot(dat, type='heatmap')
+# Plot a bubble plot with small colonies as black
+# and large colonies as red 
+gitter.plot(dat, type='bubble', low='black', high='red')
+</code></pre>
+
+<img src="images/heatmap.png" style="width:49%">
+<img src="images/bubble.png" style="width:49%">
+
+<p>White dots on the plots represent colonies with a low circularity (the exact threshold can be adjusted as a parameter).</p>
+<p>You can adjust the colours defining the colony sizes as needed</p>
+<pre><code># Plot a heatmap with custom colours
+gitter.plot(dat, type='heatmap',
+            low='red', mid='black', high='green')
+</code></pre>
+
+
+<img src="images/heatmap_custom.png" style="width:100%">
+
+
+<p>and overlay colony size values</p>
+<pre><code class="r"># Plot a heatmap with custom colours and overlaid size values
+gitter.plot(dat, type='heatmap', 
+	    low='red', mid='black', high='green', show.text=T)
+</code></pre>
+
+
+<center><img src="images/heatmap_text.png" style="width:100%"></center>
+
+
+<!--DOCUMENTATION-->
+<h2>Documentation</h2>
+<p>For further documentation on the parameters or how to process batch images view the <a href="http://cran.r-project.org/web/packages/gitter/gitter.pdf" target="_blank">pdf manual on CRAN</a> or type the following into your R console</p>
+
+<pre><code>?gitter
+?gitter.batch
+?gitter.plot
+</code></pre>
+
+<p>For information on the package</p>
+
+<pre><code>?Rgitter</code></pre>
+
+
+
+
+<!--AUTHORS AND CONTRIBUTONS-->
+<h2>Authors and contributors</h2>
+
+<p>gitter was developed by <a href="mailto:omar.wagih@utoronto.ca">Omar Wagih</a> and <a href="mailto:leopold.parts@utoronto.ca">Leopold Parts</a> at the <a href="http://tdccbr.med.utoronto.ca/">Donnelly Centre for Cellular and Biomolecular Research</a>, <a>University of Toronto</a></p>
+
+
+<!--CITATION-->
+<h2>Citation</h2>
+<p>A lot of time and effort went into developing gitter. If you use it in your research, please cite:</p>
+<p>Omar Wagih and Leopold Parts. gitter: a robust and accurate method for quantification of colony sizes from plate images - Unpublished</p>
+
+<h2>Support or contact</h2>
+<p>If you have a suggestion, or feature request please post it in the <a href="https://github.com/omarwagih/gitter/issues" target="_blank">issues section</a>. If you're having trouble with gitter, check out the documentation as mentioned above or <a href="mailto:omar.wagih@utoronto.ca">contact us</a> and we’ll help you sort it out</p>
+
+
+
+                <p class="block" style="display:none"><a class="button" href="http://github.hubspot.com/offline/">Documentation</a></p>
+                <br><br><br><br>
+                
+                
+</div>
+</div>
+
+
+        
+        <div id="retweet_button">
+            <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://omarwagih.github.io/gitter" data-via="omarwagih">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+        </div>
+        
+        <div id="github_stars">
+<iframe src="http://ghbtns.com/github-btn.html?user=omarwagih&amp;repo=gitter&amp;type=watch&amp;count=true&amp;size=small" allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe>
+        </div>
+        
+        <div id="fb_btn">
+        
+<iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fomarwagih.github.io%2Fgitter%2F&amp;width=100&amp;height=21&amp;colorscheme=light&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;send=false" scrolling="no" frameborder="0" style="border:none; width:200px; height:21px;" allowTransparency="true"></iframe>
+        </div>
+       
+        <!-- Force 3d acceleration always and forever :) -->
+        <div style="-webkit-transform: translateZ(0)"></div>
+   
+   
+</body>
+
+<!-- Place this tag after the last +1 button tag. -->
+
+</html>
