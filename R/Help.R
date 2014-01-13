@@ -14,6 +14,10 @@
   x
 }
 
+.roundEven <- function(x){
+  2.*round(x/2)
+}
+
 #Adds a padding to some matrix mat such that the padding is equal to the value of the nearest cell
 #Inputs:
 #  mat = matrix to which the padding is added
@@ -104,6 +108,20 @@
   return(which.max(v)-1)
 }
 
+.rotateAngle2 <- function(im.grey, degree.incr=0.2){
+  
+  im = imageData(resize(im.grey, w=500, h=500))
+  # Radon transform
+  f = (1/degree.incr)
+  samp = ( 180 * f ) + 1
+  rad = radon(im, ThetaSamples=samp)$rData
+  # Compute row-wise variance & only allow +- 50 degrees
+  v = apply(rad, 1, var)
+  v[ (50*f) : (150*f) ] = 0
+  
+  return( (which.max(v)-1)/f )
+}
+
 .autoRotateImage2 <- function(im){
   ptm <- proc.time()
   
@@ -112,7 +130,7 @@
   if(is.color)
     bw = im[,,1]
   
-  a = .rotateAngle(bw)
+  a = .rotateAngle2(bw)
   if(a > 90) a = a - 180
   loginfo('Rotate by %s degrees',  a )
   im.rot = t(EBImage::rotate(t(bw), a))

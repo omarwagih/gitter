@@ -64,12 +64,15 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
 
 \value{
 \item{ DAT file }{
-  Tab delimited file containing quantified colony sizes. 
+  Tab delimited file containing quantified colony sizes. There are two types of flags that can be associated with a data file 
+  (1) plate-level flags signify possible misgridding of the plate due to a high number of low colony size or circularity. These flags can be viewed using the \code{\link{plate.warnings}} function 
+  (2) colony-based flags signify warnings associated with individual colonies. These flags can be viewed in the column named flags of the data file. 
   \tabular{ll}{
     row: \tab row number\cr
     col: \tab column number\cr
     size: \tab quantified colony size\cr
     circularity: \tab circularity of the colony\cr
+    flags: \tab colony-based flags: S - Colony spill or edge interference, C- Low colony circularity\cr
     %x: \tab x-coordinate value of the colony centre\cr
     %y: \tab y-coordinate value of the colony centre\cr
     %xl: \tab coordinate defining left bound of the colony (x-left)\cr

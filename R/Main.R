@@ -1,19 +1,19 @@
-z = setwd('~/Development/gitter/R')
-#Import packages
-library('EBImage')
-library('jpeg')
-library('tiff')
-library('logging')
-library('parallel')
-library('PET')
-library('ggplot2')
-
-source('Peaks.R')
-source('Help.R')
-setwd(z)
+# z = setwd('~/Development/gitter/R')
+# #Import packages
+# library('EBImage')
+# library('jpeg')
+# library('tiff')
+# library('logging')
+# library('parallel')
+# library('PET')
+# library('ggplot2')
+# 
+# source('Peaks.R')
+# source('Help.R')
+# setwd(z)
 
 .GITTER_VERSION = '1.0.3'
-.pf = list('1536'=c(32,48),'768'=c(32,48),'384'=c(16,24),'96'=c(8,12))  
+.pf = list('1536'=c(32,48),'768'=c(32,48),'384'=c(16,24),'96'=c(8,12))
 
 .readImage <- function(file){
   n = basename(file)
@@ -49,7 +49,6 @@ setwd(z)
   if( (sum(is.na(c) | c < 0.6) / n) > 0.1 ){
     fl = append(fl, 'circularity')
   }
-  
   return(fl)
 }
 
@@ -59,10 +58,10 @@ gitter.demo <- function(eg='single'){
   if(eg == 'single'){
     f = system.file("extdata", "sample.jpg", package="gitter")
     dat = gitter(f)
-    p <- gitter.plot(dat, title=sprintf('gitter v%s single image example', .GITTER_VERSION))
+    p <- plot.gitter(dat, title=sprintf('gitter v%s single image example', .GITTER_VERSION))
     print(p)
     browseURL(f)
-    gitter.summary(dat)
+    summary.gitter(dat)
   }
   if(eg == 'ref'){
     f = system.file("extdata", "sample_dead.jpg", package="gitter")
@@ -124,7 +123,8 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
   
   # Save failed plates
   if(length(failed.plates) > 0){
-    failed.plates = c('# gitter failed images', failed.plates)
+    failed.plates = c(sprintf('# gitter v%s failed images generated on %s', .GITTER_VERSION, format(Sys.time(), "%a %b %d %X %Y")),
+                      failed.plates)
     writeLines(failed.plates, failed.file)
   }
   #dats = lapply(image.files, gitter, ..., .params=params, .is.ref=F)
@@ -171,7 +171,6 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   if(is.fast){
     if(fast < 1500 | fast > 4000) stop('Fast resize width must be between 1500-4000px')
   } 
-   
   
   expf = 1.5
   params = as.list(environment(), all=TRUE)
@@ -213,7 +212,6 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     loginfo('\tDetected greyscale image')
     im.grey = im
   }
-  
   
   if(autorotate){
     if(prog) setTxtProgressBar(pb, 14)
@@ -297,6 +295,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   # Window expansion factor
   d = round(w * expf)
+  d = .roundOdd(d)
   
   if(prog) setTxtProgressBar(pb, 75)
   #Pad image
@@ -316,9 +315,10 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   im.grey = .unpadmatrix(im.pad, w)
   
   coords[,c('x','y','xl','xr','yt','yb')] = coords[,c('x','y','xl','xr','yt','yb')]-w
-  coords[coords<0] = 1
+  coords[,1:6][coords[,1:6] < 0] = 1
   coords[,c('xl', 'xr')][coords[,c('xl', 'xr')] > ncol(im.grey)] = ncol(im.grey)
   coords[,c('yt', 'yb')][coords[,c('yt', 'yb')] > nrow(im.grey)] = nrow(im.grey)
+  
   
   # Generate rows and columns to be bound to coords below
   rc = expand.grid(1:ncol, 1:nrow)[,c(2,1)]
@@ -329,7 +329,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   elapsed = signif( (proc.time() - ptm)[['elapsed']], 5)
   
   # Rearrange
-  results = results[,c('row', 'col', 'size', 'circularity',
+  results = results[,c('row', 'col', 'size', 'circularity','flags',
                        'x', 'y', 'xl','xr', 'yt', 'yb')]
   
   class(results) = c('gitter', 'data.frame')
@@ -339,6 +339,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   if(!is.null(grid.save) & !.is.ref){
     #imr = drawPeaks(peaks.c=cp.y$peaks, peaks.r=cp.x$peaks, imr)
     imr = .drawRect(coords[,3:6], im.grey)
+    #imr = im.grey
     save = file.path(grid.save, paste0('gridded_',basename(image.file)))
     loginfo('Saved gridded image to: %s', save)
     
@@ -353,16 +354,17 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   if(!is.null(dat.save) & !.is.ref){
     save = file.path(dat.save, paste0(basename(image.file), '.dat'))
     
-    results[[4]] = round(results[[4]], 4)
-    results = results[,1:4]
+    results$circularity = round(results$circularity, 4)
+    results = results[,1:5]
     
-    hd = c(sprintf('# gitter V%s data file generated on %s', .GITTER_VERSION, format(Sys.time(), "%a %b %d %X %Y")))
+    hd = c(sprintf('# gitter v%s data file generated on %s', .GITTER_VERSION, format(Sys.time(), "%a %b %d %X %Y")))
     fl = .getFlags(results)
     if(length(fl) > 0){
+      attr(results, 'warnings') = fl
       fl = sprintf('# Warning: possible misgridding caused by an abundance in low colony %s', paste0(fl, collapse=' or '))
       hd = append(hd, fl)
-      attr(results, 'params') = params
     }
+    hd = append(hd, '# Flags: S - Colony spill or edge interference, C - Low colony circularity')
     writeLines(hd, save)
     cat('# ', file=save, append=T)
     
@@ -387,26 +389,6 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   return(results)
 }
 
-# .getKmeansImage <- function(im, coords){
-#   coords = coords[,c('xl', 'xr', 'yt', 'yb')]
-#   cent = .getMeans(im)
-#   ret = im
-#   t = matrix(T, nrow(im), ncol(im))
-#   for(i in 1:nrow(coords)){
-#     z = as.numeric(coords[i,])
-#     spot = im[z[3]:z[4],z[1]:z[2]]
-#     im.spot.vec = c(cent, spot)
-#     #cent = c(min(im.spot.vec), max(im.spot.vec))
-#     cl = kmeans(im.spot.vec, cent)
-#     cls = cl$cluster[-(1:2)] - 1
-#     spot.bw = matrix(cls, nrow=nrow(spot))
-#     ret[z[3]:z[4],z[1]:z[2]] = spot.bw
-#     t[z[3]:z[4],z[1]:z[2]] = F
-#   }
-#   
-#   ret[t] = ( ret[t] > 0.7 )+0
-#   return(ret)
-# }
 
 .threshold <- function(im.grey, nrow, ncol, fast=T, f=1000, pb){
   prog = !is.null(pb)
@@ -469,15 +451,42 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   return(x)
 }
 
-.xl <- function(z, w){ m = which(z == min(z)); t = length(z) - m[length(m)]; if(t < w) t = w; return(t) }
-.xr <- function(z, w){ t = which.min(z); if(t < w) t = w; return(t) }
+.xl <- function(z, w){ 
+  m = which(z == min(z))
+  t = length(z) - m[length(m)]
+  if(t < w) t = w
+  return(t)
+}
+
+.xr <- function(z, w){ 
+  t = which.min(z) + 1
+  if(t < w) t = w
+  return(t)
+}
 .yt <- .xl
 .yb <- .xr
+
+
+.matBorder <- function(x){
+  list(l = x[1:nrow(x),1],
+       r = x[1:nrow(x),ncol(x)],
+       t = x[1,1:ncol(x)],
+       b = x[nrow(x),1:ncol(x)])
+}
+
+.spilled <- function(x, f){
+  z = .matBorder(x)
+  sum( z$l ) > nrow(x)*f | 
+    sum( z$r ) > nrow(x)*f | 
+    sum( z$t ) > ncol(x)*f | 
+    sum( z$b ) > ncol(x)*f
+}
 
 .fitRects <- function(coords, im.kmeans, d){
   
   # Minimum border for really small colonies
-  minb = d/3
+  # Remove any decimals
+  minb = round(d/3)
   
   ret = lapply(1:nrow(coords), function(i){
     # Center of spot
@@ -491,12 +500,19 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     
     spot.bw = im.kmeans[rect[3]:rect[4], rect[1]:rect[2]]
     
+    rs = rowSums(spot.bw)
+    cs = colSums(spot.bw)
+    
+    # Crop bw spot and compute new size
+    x.rel = x - rect[1]
+    y.rel = y - rect[3]
+    
     if(cent.pixel == 0){
-      z = rep(minb*2, 4)
+      z = rep( minb*2, 4)
     }else{
       # Sum rows and cols, split sums in half 
-      sp.y = .splitHalf(rowSums(spot.bw))
-      sp.x = .splitHalf(colSums(spot.bw))
+      sp.y = .splitHalf(rs)
+      sp.x = .splitHalf(cs)
       # Get minimums relative to the spot and set minimums if too small
       z = c(.xl(sp.x$left, minb), 
             .xr(sp.x$right, minb),
@@ -504,21 +520,41 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
             .yb(sp.y$right, minb))
     }
     
-    # Crop bw spot and compute new size
-    x.rel = x - rect[1]
-    y.rel = y - rect[3]
+#     if(i == 48){
+#       print(z)
+#       print(c(x.rel, y.rel))
+#       
+#       par(mfrow=c(1,2))
+#       plot(cs, type='l')
+#       abline(v=c(x.rel-z[1], x.rel+z[2]), col='red')
+#       plot(rs, type='l')
+#       abline(v=c(y.rel-z[3], x.rel+z[4]), col='blue')
+#     }
     
     rect.rel = c(x.rel - z[1], x.rel + z[2], y.rel - z[3], y.rel + z[4])
     spot.bw = spot.bw[rect.rel[3]:rect.rel[4], rect.rel[1]:rect.rel[2]]
+    
+    spilled = .spilled(spot.bw, 0.2)
+    
     # Compute new spot relative to plate
     rect = c(x - z[1], x + z[2], y - z[3], y + z[4])
     
-    c(x, y, rect, sum(spot.bw), .circularity(spot.bw))
+    c(x, y, rect, sum(spot.bw), .circularity(spot.bw), spilled)
   })
   
   coords = matrix(simplify2array(ret), nrow(coords), byrow=T)
   coords = as.data.frame(coords)
-  names(coords) = c('x', 'y', 'xl', 'xr', 'yt', 'yb', 'size', 'circularity')
+  names(coords) = c('x', 'y', 'xl', 'xr', 'yt', 'yb', 'size', 'circularity', 'spill')
+  
+  flags = data.frame(spilled = (coords$spill == 1), 
+                     lowcirc = (coords$circularity < 0.6 & !is.nan(coords$circularity) & !is.na(coords$circularity)))
+  # 1: Colony spill over or edge interference, 2 = Low circularity
+  flag.id = c('S', 'C')
+  coords$flags = apply(flags, 1, function(r){
+    paste0(flag.id[r], collapse=',')
+  })
+  coords[,names(coords) != 'spill']
+  
   return(coords)
 }
 
@@ -536,28 +572,34 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
 }
 
 
-read.gitter <- function(dat){
-  if(is.character(dat)){
-    dat = read.table(dat, stringsAsFactors=F, header=T)
-    class(dat) = c('gitter', class(dat))
-  }else if(!is.data.frame(dat)){
+gitter.read <- function(path){
+  if(is.character(path)){
+    dat = read.table(path, stringsAsFactors=F, header=F, sep='\t')
+    names(dat) = c('row', 'col', 'size', 'circularity', 'flags')
+  }else if(!is.data.frame(path)){
     stop('Please enter the filepath to a gitter data file')
   }
+  class(dat) = c('gitter', 'data.frame')
   return(dat)
 }
 
-plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
-                        show.text=F, text.color='white', norm=T, 
-                        show.circ=T, circ.cutoff=0.6, circ.color='white'){
+plate.warnings <- function(dat){
+  if(!is.data.frame(dat) & ! 'gitter' %in% class(dat)) stop('Data must be a data path or data frame generated by gitter')
+  return( attr(dat, 'warnings') )
+}
 
+plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
+                        show.text=F, text.color='white', norm=T, 
+                        show.flags=T, flag.color='white', ...){
+  dat = x
 #   if(is.character(dat)) dat = read.table(dat, stringsAsFactors=F, header=T)
   if(!is.data.frame(dat) & ! 'gitter' %in% class(dat)) stop('Data must be a data path or data frame generated by gitter')
   if(!type %in% c('heatmap', 'bubble')) stop('Invalid plot type. Use "heatmap" or "bubble"')
   
-  if(length(dat) > 4 | length(dat) < 3) stop('Invalid number of columns for dat file')
+  if(length(dat) > 5 | length(dat) < 3) stop('Invalid number of columns for dat file')
   
   names(dat) = c('r', 'c', 's')
-  dat.cs = NULL
+  dat.cs = s = NULL
   
   r = max(dat$r)
   c = max(dat$c)
@@ -575,9 +617,9 @@ plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='bla
     m = mean(dat$s[z[1]:z[2]], na.rm=T)
   }
   
-  if(length(dat) == 4){
-    names(dat)[4] = 'circ'
-    dat.cs = dat[dat$circ < circ.cutoff & !is.na(dat$circ),] 
+  if(length(dat) == 5){
+    names(dat)[5] = 'flags'
+    dat.cs = dat[dat$flags != "",] 
   }
   
   # Round data to 2
@@ -604,15 +646,16 @@ plot.gitter <- function(dat, title='', type='heatmap', low='turquoise', mid='bla
       theme_bw() +
       theme(title=element_text(size=14,face="bold"))
   }
-  if(show.circ & !is.null(dat.cs) & nrow(dat.cs) != 0){
-    p = p + geom_point(aes(x=c, y=r), data=dat.cs, color=circ.color, size=1)
+  if(show.flags & !is.null(dat.cs) & nrow(dat.cs) != 0){
+    p = p + geom_point(aes(x=c, y=r), data=dat.cs, color=flag.color, size=1)
   }
   
   if(show.text) p = p + geom_text(color = text.color, aes(label=s), size=3)
   return(p)
 }
 
-summary.gitter <- function(d){
+summary.gitter <- function(object, ...){
+  d = object
   pf = attr(d, 'format')
   call = attr(d, 'call')
   writeLines(sprintf('###########################\n# gitter V%s data file #\n###########################', .GITTER_VERSION))

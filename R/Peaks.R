@@ -138,8 +138,8 @@
 
 
 .splitHalf <- function(vec){
-  t = ceiling(length(vec)/2)
-  return(list(left=vec[1:t], right=vec[(t+1):length(vec)]))
+  t = ceiling(length(vec)/2)#middle
+  return(list(left=vec[1: (t-1)], right=vec[(t+1):length(vec)]))
 }
 
 .fixOuterPeaks <- function(peaks){
