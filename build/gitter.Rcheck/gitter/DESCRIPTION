@@ -1,0 +1,12 @@
+Package: gitter
+Type: Package
+Title: Robust gridding and quantifying of pinned genetic screens
+Version: 1.0.3
+Date: 2014-01-13
+Author: Omar Wagih, Leopold Parts
+Maintainer: Omar Wagih <omar.wagih@utoronto.ca>
+Description: gitter is a image analysis package for R. Its primary goal is to allow users to robustly and quickly grid and quantify biological images of pinned colonies. It includes several image pre-processing techniques, such as autorotation of plates, noise removal, contrast adjustment and image resizing.
+License: CC BY-NC-SA 3.0
+Depends: jpeg, tiff, logging, parallel, PET, ggplot2, EBImage
+Packaged: 2014-01-13 12:02:32 UTC; omarwagih
+Built: R 3.0.2; ; 2014-01-13 12:02:45 UTC; unix

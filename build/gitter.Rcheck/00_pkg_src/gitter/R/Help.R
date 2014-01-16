@@ -61,7 +61,8 @@
     if(i > 1){
       cmu1 = mean(x[x>=t])
       cmu2 = mean(x[x<t])
-    } 
+    }
+    
     if( (i > 1 & cmu1 == mu1 & cmu2 == mu2) | t > 1){
       loginfo('Optimal threshold t = %s', t)
       if(t>cap){
@@ -78,6 +79,7 @@
     }
     i = i+1
   }
+  
 }
 
 # .centerOfMass <- function(spot){
@@ -108,9 +110,7 @@
 
 .rotateAngle2 <- function(im.grey, degree.incr=0.2){
   
-  im = imageData(resize(im.grey, h=500))
-  m = min(dim(im))
-  im = im[1:m,1:m]
+  im = imageData(resize(im.grey, w=500, h=500))
   # Radon transform
   f = (1/degree.incr)
   samp = ( 180 * f ) + 1
@@ -119,17 +119,8 @@
   v = apply(rad, 1, var)
   v[ (50*f) : (150*f) ] = 0
   
-  a = (which.max(v)-1)/f
-  print(a)
-  if(a > 90){
-    a = a - degree.incr - 180
-  } else{
-    #a = a + degree.incr
-  }
-  print(a)
-  return( a )
+  return( (which.max(v)-1)/f )
 }
-
 
 .autoRotateImage2 <- function(im){
   ptm <- proc.time()
@@ -140,7 +131,7 @@
     bw = im[,,1]
   
   a = .rotateAngle2(bw)
-  #if(a > 90) a = a - 180
+  if(a > 90) a = a - 180
   loginfo('Rotate by %s degrees',  a )
   im.rot = t(EBImage::rotate(t(bw), a))
   

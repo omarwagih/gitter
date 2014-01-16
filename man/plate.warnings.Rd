@@ -1,26 +1,26 @@
-\name{gitter.demo}
-\alias{gitter.demo}
+\name{plate.warnings}
+\alias{plate.warnings}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Run a demo of gitter
+Show any plate-level warnings associated with a \code{\link{gitter}} data object
 }
 \description{
-This function will run a demo of gitter.
+This function will show warnings associated with a \code{\link{gitter}} data object.
 }
 \usage{
-gitter.demo(eg=1)
+plate.warnings(dat)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{eg}{
-    Type of demo. 1 for a single image demo, 1 for a single image demo using a reference image. Default is 1.
+  \item{dat}{
+    The data.frame produced by \code{\link{gitter}}.
   }
 }
 %\details{
 %%  ~~ If necessary, more details than the description above ~~
 %}
 \value{
-Summary of the dat file produced is displayed.
+Warnings associated with the gitter data object or NULL if no warnings.
 }
 %\references{
 %% ~put references to the literature/web site here ~
@@ -39,9 +39,10 @@ Omar Wagih \email{omar.wagih@utoronto.ca}
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-# gitter.demo()
+# dat = gitter("/path/to/image")
+# plate.warnings(dat)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ demo }
-\keyword{ example }
+\keyword{ warnings }
+\keyword{ plate }

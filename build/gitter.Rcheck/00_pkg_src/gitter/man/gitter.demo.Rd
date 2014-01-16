@@ -8,12 +8,12 @@ Run a demo of gitter
 This function will run a demo of gitter.
 }
 \usage{
-gitter.demo(eg=1)
+gitter.demo(eg='single')
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{eg}{
-    Type of demo. 1 for a single image demo, 1 for a single image demo using a reference image. Default is 1.
+    Type of demo. "single" for a single image demo, "ref" for a single image demo using a reference image. Default is "simple".
   }
 }
 %\details{

@@ -16,10 +16,10 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{image.file}{
-  The path to the image. Defaults to a file choosing dialog.
+  The path to the JPG/JPEG image. Defaults to a file choosing dialog.
 }
   \item{plate.format}{
-  The plate format, accepted formats: 1536, 768, 384 and 96. Alternatively, you can provide the number of rows and columns on the plate as an integer vector for example c(32,48). Default is 1536.
+  The plate format, accepted formats: 1536, 768, 384 and 96. Alternatively, you can provide the number of rows and columns on the plate as an integer vector for example "c(32,48)". Default is "1536".
 }
   \item{remove.noise}{
   Logical indicating noise/speckles should be remove from the thresholded image prior to analysis. Default is "FALSE". 
@@ -37,7 +37,7 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
   Integer indicating how much contrast should be applied to the image, prior to processing. A value of "NULL" will not apply any contrast. Default is "NULL".
 }
   \item{fast}{
-  If set to integer value, the image will be resized to this width in pixels to speed up computation. This is useful for very large images that otherwise take a long time to process. We do not recommend resizing to fewer than 1500 pixels or greater that 4000 pixels in width. Default is "NULL".
+  Pixel value between 1500-4000 indicating if images should be resized to a certain width to speed up processing. If "NULL", no resizing occurs. Default is "NULL".
 }
   \item{plot}{
  Logical indicating whether intensity profiles should be plotted. Default is "FALSE".
@@ -46,7 +46,7 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
  Directory path to save gridded/thresholded images. Set to "NULL" if you do not want gridded images saved to disk. Default is the current working directory.
 }
   \item{dat.save}{
-  Directory path to save resulting data files. Set to "NULL" if you do not want resulting data saved to disk. Default is the current working directory.
+  Directory path to save dat files. Set to "NULL" if you do not want dat files saved to disk. Default is the current working directory.
 }
 
 \item{.is.ref}{
@@ -65,7 +65,7 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
 \value{
 \item{ DAT file }{
   Tab delimited file containing quantified colony sizes. There are two types of flags that can be associated with a data file 
-  (1) plate-level flags signify possible misgridding of the plate due to a high number of colonies with small size or low circularity. These flags can be viewed using the \code{\link{plate.warnings}} function 
+  (1) plate-level flags signify possible misgridding of the plate due to a high number of low colony size or circularity. These flags can be viewed using the \code{\link{plate.warnings}} function 
   (2) colony-based flags signify warnings associated with individual colonies. These flags can be viewed in the column named flags of the data file. 
   \tabular{ll}{
     row: \tab row number\cr

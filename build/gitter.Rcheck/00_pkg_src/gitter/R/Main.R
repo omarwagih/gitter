@@ -52,25 +52,21 @@
   return(fl)
 }
 
-gitter.demo <- function(eg=1){
-  if(!eg %in% c(1,2)) stop('Invalid example, please use 1 for a single image or 2 to process an image using a reference image')
+gitter.demo <- function(eg='single'){
+  if(!eg %in% c('single', 'ref')) stop('Invalid example')
   
-  if(! interactive() ) stop('Unable to run demo through non-interactive interface!')
-  if(eg == 1){ # Process single image
+  if(eg == 'single'){
     f = system.file("extdata", "sample.jpg", package="gitter")
-    dat = gitter(f, verbose='p')
+    dat = gitter(f)
     p <- plot.gitter(dat, title=sprintf('gitter v%s single image example', .GITTER_VERSION))
     print(p)
     browseURL(f)
-    browseURL(file.path(getwd(), paste0('gridded_', basename(f))))
     summary.gitter(dat)
   }
-  if(eg == 2){ # Process using reference image
+  if(eg == 'ref'){
     f = system.file("extdata", "sample_dead.jpg", package="gitter")
     f.ref = system.file("extdata", "sample.jpg", package="gitter")
-    gitter.batch(f, f.ref, verbose='p')
-    browseURL(f)
-    browseURL(file.path(getwd(), paste0('gridded_', basename(f))))
+    gitter.batch(f, f.ref)
     warning(sprintf('NOTE: Output files were saved to working directory at %s', getwd()))
   }
 }
@@ -190,7 +186,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   prog = verbose == 'p' 
   if(!prog) pb <- NULL
   if(prog){
-    cat('Processing', basename(image.file), '...\n')
+    cat(file.path(dirname(image.file), basename(image.file)), '\n')
     pb <- txtProgressBar(min = 0, max = 100, style = 3)
   }
   # Read image
@@ -662,12 +658,12 @@ summary.gitter <- function(object, ...){
   d = object
   pf = attr(d, 'format')
   call = attr(d, 'call')
-  writeLines(sprintf('# gitter v%s data file #', .GITTER_VERSION))
+  writeLines(sprintf('###########################\n# gitter V%s data file #\n###########################', .GITTER_VERSION))
   writeLines(sprintf('Function call: %s', deparse(call)))
   writeLines(sprintf('Elapsed time: %s secs', attr(d, 'elapsed')))
   writeLines(sprintf('Plate format: %s x %s (%s)', pf[1], pf[2], prod(pf)))
   writeLines('Colony size statistics:')
   print(summary(d[[3]]))
-  writeLines('Dat file (first 6 rows):')
+  writeLines('Dat file (showing 6 rows):')
   print(head(d))
 }

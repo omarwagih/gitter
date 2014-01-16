@@ -1,0 +1,2 @@
+# gitter v1.0.3 failed images generated on Mon Jan 13 12:03:50 2014
+sample_dead.jpg

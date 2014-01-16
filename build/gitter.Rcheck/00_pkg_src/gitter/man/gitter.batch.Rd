@@ -13,7 +13,7 @@ gitter.batch(image.files, ref.image.file = NULL, verbose = 'l', ...)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{image.files}{
-  Directory containing images OR a character vector of image paths.
+  Directory containing JPG or JPEG images OR a character vector of image paths.
 }
   \item{ref.image.file}{
   Specifies path to a reference image, which will be used to grid images specified in image.files.
