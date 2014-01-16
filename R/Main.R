@@ -1,16 +1,16 @@
-# z = setwd('~/Development/gitter/R')
-# #Import packages
-# library('EBImage')
-# library('jpeg')
-# library('tiff')
-# library('logging')
-# library('parallel')
-# library('PET')
-# library('ggplot2')
-# 
-# source('Peaks.R')
-# source('Help.R')
-# setwd(z)
+z = setwd('~/Development/gitter/R')
+#Import packages
+library('EBImage')
+library('jpeg')
+library('tiff')
+library('logging')
+library('parallel')
+library('PET')
+library('ggplot2')
+
+source('Peaks.R')
+source('Help.R')
+setwd(z)
 
 .GITTER_VERSION = '1.0.3'
 .pf = list('1536'=c(32,48),'768'=c(32,48),'384'=c(16,24),'96'=c(8,12))
@@ -35,22 +35,7 @@
   
 }
 
-.getFlags <- function(dat){
-  s = dat$size / median(dat$size)
-  c = dat$circularity
-  n = nrow(dat)
-  
-  fl = c()
-  # If 10% of colonies have colonies smaller than 0.1
-  if( (sum(s < 0.1) / n) > 0.1){
-    fl = append(fl, 'size')
-  }
-  # If empty 
-  if( (sum(is.na(c) | c < 0.6) / n) > 0.1 ){
-    fl = append(fl, 'circularity')
-  }
-  return(fl)
-}
+
 
 gitter.demo <- function(eg=1){
   if(!eg %in% c(1,2)) stop('Invalid example, please use 1 for a single image or 2 to process an image using a reference image')
@@ -361,19 +346,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     results$circularity = round(results$circularity, 4)
     results = results[,1:5]
     
-    hd = c(sprintf('# gitter v%s data file generated on %s', .GITTER_VERSION, format(Sys.time(), "%a %b %d %X %Y")))
-    fl = .getFlags(results)
-    if(length(fl) > 0){
-      attr(results, 'warnings') = fl
-      fl = sprintf('# Warning: possible misgridding caused by an abundance in low colony %s', paste0(fl, collapse=' or '))
-      hd = append(hd, fl)
-    }
-    hd = append(hd, '# Flags: S - Colony spill or edge interference, C - Low colony circularity')
-    writeLines(hd, save)
-    cat('# ', file=save, append=T)
-    
-    suppressWarnings( write.table(results, file=save, quote=F, sep='\t', row.names=F, col.names=T, append=T) )
-    loginfo('Saved dat file to: %s', save)
+    results = .gitter.write(results, save)
   }
   
   # Garbage collector
@@ -576,10 +549,66 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
 }
 
 
+.getFlags <- function(dat){
+  s = dat$size / median(dat$size)
+  c = dat$circularity
+  n = nrow(dat)
+  
+  fl = c()
+  # If 10% of colonies have colonies smaller than 0.1
+  if( (sum(s < 0.1) / n) > 0.1){
+    fl = append(fl, "1")
+  }
+  # If empty 
+  if( (sum(is.na(c) | c < 0.6) / n) > 0.1 ){
+    fl = append(fl, "2")
+  }
+  return(fl)
+}
+
+.flagMap = c("1"="high count of small colony sizes",
+             "2"="high count of low colony circularity")
+.warningPat = "# Warning possible misgridding: "
+
+
+.gitter.write <- function(dat, path){
+  hd = c(sprintf('# gitter v%s data file generated on %s', .GITTER_VERSION, format(Sys.time(), "%a %b %d %X %Y")))
+  id = .getFlags(dat)
+  id = id[id %in% names(.flagMap)]
+  fl = unname(.flagMap[id])
+  if(length(fl) > 0){
+    attr(dat, 'warnings') = fl
+    fl = sprintf(paste0(.warningPat, "%s"), paste0(fl, collapse=', '))
+    hd = append(hd, fl)
+  }
+  hd = append(hd, '# Flags: S - Colony spill or edge interference, C - Low colony circularity')
+  writeLines(hd, path)
+  cat('# ', file=path, append=T)
+  
+  suppressWarnings( write.table(dat, file=path, quote=F, sep='\t', row.names=F, col.names=T, append=T) )
+  loginfo('Saved dat file to: %s', path)
+  return(dat)
+}
+
+
 gitter.read <- function(path){
   if(is.character(path)){
     dat = read.table(path, stringsAsFactors=F, header=F, sep='\t')
     names(dat) = c('row', 'col', 'size', 'circularity', 'flags')
+    
+    #Read first 5 lines
+    con  <- file(path, open = "r")
+    i = 1
+    while (length(line <- readLines(con, n = 1, warn = FALSE)) > 0) {
+      if(i > 5) break;
+      if(grepl(pattern=.warningPat, line)){
+        line = gsub(.warningPat, replacement="", line)
+        x = strsplit(line, ", ")[[1]]
+        x = x[x %in% .flagMap]
+        attr(dat, "warnings") = x
+      }
+    } 
+    close(con)
   }else if(!is.data.frame(path)){
     stop('Please enter the filepath to a gitter data file')
   }
@@ -661,13 +690,24 @@ plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black
 summary.gitter <- function(object, ...){
   d = object
   pf = attr(d, 'format')
-  call = attr(d, 'call')
+  call = attr(d, 'call'))
+  if(is.null(call)){
+    call = "not available"
+  }else{
+    call = deparse(call)
+  }
+  
   writeLines(sprintf('# gitter v%s data file #', .GITTER_VERSION))
-  writeLines(sprintf('Function call: %s', deparse(call)))
+  writeLines(sprintf('Function call: %s', call))
   writeLines(sprintf('Elapsed time: %s secs', attr(d, 'elapsed')))
   writeLines(sprintf('Plate format: %s x %s (%s)', pf[1], pf[2], prod(pf)))
   writeLines('Colony size statistics:')
   print(summary(d[[3]]))
   writeLines('Dat file (first 6 rows):')
   print(head(d))
+  w = attr(object, 'warnings')
+  if(! is.null(w)){
+    writeLines('Plate warnings:')
+    writeLines(paste0(w, collapse=', '))
+  }
 }
