@@ -690,7 +690,7 @@ plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black
 summary.gitter <- function(object, ...){
   d = object
   pf = attr(d, 'format')
-  call = attr(d, 'call'))
+  call = attr(d, 'call')
   if(is.null(call)){
     call = "not available"
   }else{
