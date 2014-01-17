@@ -1,1 +1,3 @@
 exportPattern("^[[:alpha:]]+")
+import(jpeg, tiff, logging, parallel, ggplot2, EBImage)
+importFrom(PET, radon)

@@ -34,7 +34,7 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
   Shows details about the results of running job. For detailed logs "l", for a progress bar "p" or for no output "n". Default is "l".
 }
   \item{contrast}{
-  Integer indicating how much contrast should be applied to the image, prior to processing. A value of "NULL" will not apply any contrast. Default is "NULL".
+  Integer between 1 and 100 indicating how much contrast should be applied to the image, prior to processing. A value of "NULL" will not apply any contrast. Default is "NULL".
 }
   \item{fast}{
   If set to integer value, the image will be resized to this width in pixels to speed up computation. This is useful for very large images that otherwise take a long time to process. We do not recommend resizing to fewer than 1500 pixels or greater that 4000 pixels in width. Default is "NULL".

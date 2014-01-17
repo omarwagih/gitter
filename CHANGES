@@ -1,3 +1,9 @@
+version 1.0.3
+- Converted plot and summary functions to S3 
+- Added colony-based warnings and plate based warnings for touching, small and low circularity colonies
+- Finer grain rotation angle, resolution of 0.2 degrees instead of previous 1 degree
+- Updated documentation and website
+
 version 1.0.2
 - Reduced two thresholding methods to one
 - Added progress bar
