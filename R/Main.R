@@ -1,16 +1,16 @@
-z = setwd('~/Development/gitter/R')
-#Import packages
-library('EBImage')
-library('jpeg')
-library('tiff')
-library('logging')
-library('parallel')
-library('PET')
-library('ggplot2')
-
-source('Peaks.R')
-source('Help.R')
-setwd(z)
+# z = setwd('~/Development/gitter/R')
+# #Import packages
+# library('EBImage')
+# library('jpeg')
+# library('tiff')
+# library('logging')
+# library('parallel')
+# library('PET')
+# library('ggplot2')
+# 
+# source('Peaks.R')
+# source('Help.R')
+# setwd(z)
 
 
 .GITTER_VERSION = '1.0.3'
