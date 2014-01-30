@@ -13,7 +13,7 @@
 # setwd(z)
 
 
-.GITTER_VERSION = '1.0.3'
+.GITTER_VERSION = '1.0.4'
 
 .onAttach <- function(lib, pkg, ...) {
 #   writeLines(sprintf('gitter version %s - quantification of pinned microbial cultures\n', .GITTER_VERSION))
