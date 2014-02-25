@@ -662,13 +662,14 @@ plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black
   names(t) = 1:r
   dat$r = t[as.character(dat$r)]
   
-  m = mean(dat$s, na.rm=T)
+  srt = sort(dat$s)
+  pmm = mean( srt[ (0.4*length(srt)) : (0.6*length(srt)) ], na.rm=T)
   if(norm){
-    z = quantile(1:nrow(dat), c(0.4, 0.6))
-    m = mean(dat$s[z[1]:z[2]], na.rm=T)
-    dat$s = dat$s / m 
-    dat$s[dat$s > 2] = 2
-    m = mean(dat$s[z[1]:z[2]], na.rm=T)
+    dat$s = dat$s / pmm
+    pmm = 1
+    #dat$s = nrm(dat$s, 0.5, 1.5)
+    dat$s[dat$s < 0.5] = 0.5
+    dat$s[dat$s > 1.5] = 1.5
   }
   
   if(length(dat) == 5){
@@ -676,12 +677,10 @@ plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black
     dat.cs = dat[dat$flags != "",] 
   }
   
-  # Round data to 2
-  dat$s = round(dat$s, 2)
   if(type == 'heatmap'){
     p <- ggplot(dat, aes(x = c, y = r, fill = s)) + 
-      geom_tile(color='black') +
-      scale_fill_gradient2(midpoint=m, low=low, high=high, mid=mid) + 
+      geom_tile() +
+      scale_fill_gradient2(midpoint=pmm, low=low, high=high, mid=mid) + 
       scale_x_discrete(expand = c(0, 0), limits = as.character(1:c)) +
       scale_y_discrete(expand = c(0, 0), limits = as.character(r:1)) + 
       coord_equal() +
