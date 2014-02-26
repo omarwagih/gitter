@@ -119,9 +119,28 @@ head(dat)
 <a target="_blank" href="images/gridded_sample.jpg"><img src="images/gridded_sample.jpg"></a>
 
 
+<h2>Processing sparse colony images</h2>
+<p>You may sometimes have plates with colonies growing very sparsely. Such images are usually difficult to process, since they often have completely empty rows or columns. Here is an example:</p>
+
+<img src="images/sample_dead.jpg">
+
+<p>gitter has a feature which will let you process these sparse images. To do so, you'll need an image of a plate with with more dense colonies taken with the same dinensions and positioning. We call this the "Reference image".<br>If gitter can process your reference image, it knows where the colonies are located and can find the corresponding location on the sparse colony plate. To process a sparse colony plate using a reference image use the <code class="r">gitter.batch</code> command. Here is an example:</p>
+<pre><code class="r"># Get the reference image path
+r = system.file("extdata", "sample.jpg", package="gitter")
+# Get the sparse plate image
+s = system.file("extdata", "sample_dead.jpg", package="gitter")
+# Process it, giving information on the progress
+gitter.batch(image.files=s, ref.image.file=r, 
+             plate.format=1536, verbose='p')
+</code></pre>
+
+<p>Or you can try out a quick demo:</p>
+<pre><code class="r">gitter.demo(2)</code></pre>
 
 
+<p>Here is a visual representation of how this works:</p>
 
+<img src="images/sparse.png">
 
 <!--VISUALIZE RESULTS-->
 <h2>Visualizing your results</h2>
