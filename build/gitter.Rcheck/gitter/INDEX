@@ -1,8 +1,0 @@
-gitter                  Process a single plate image
-gitter.batch            Process a batch set of plate images
-gitter.demo             Run a demo of gitter
-gitter.read             Read in a data file as a 'gitter' data object.
-plate.warnings          Show any plate-level warnings associated with a
-                        'gitter' data object
-plot.gitter             Plot a gitter dat file
-summary.gitter          View the summary of a gitter data file
