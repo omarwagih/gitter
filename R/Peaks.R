@@ -23,7 +23,6 @@
   return(median(pks, na.rm=T))
 }
 
-
 .sinCor <- function(x,w){
   # Smooth
   x = ksmooth(1:length(x), x, kernel='normal',bandwidth=15)$y
@@ -31,13 +30,14 @@
   # Reference curve
   ref = sin( base::seq(-pi, 2*pi, length.out=w) )
   # Correlate
-  cr = mclapply(1:length(x), function(i){
+  # cr = mclapply
+  cr = lapply(1:length(x), function(i){
     s = i - (w/2)
     e = i + (w/2)
     if(s < 1) s = 1
     if(e > length(x)) e = length(x)
     z = x[s:e][1:length(ref)]
-    cor(ref, z, method="spearman")
+    suppressWarnings( cor(ref, z, method="spearman") )
   })
   cr = simplify2array(cr)
   # Remove less then 0.3 correlations
@@ -65,7 +65,7 @@
   cr = cr[(w+1): (length(cr)-w)]
   
   rn = 1:length(cr)
-  pe = .getPeaks(cr,floor( w/3 ))
+  pe = .getPeaks(cr, floor( w/3 ))
   rp = rn[pe]
   pv = cr[pe]
   

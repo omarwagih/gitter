@@ -1,10 +1,22 @@
 Package: gitter
 Type: Package
-Title: an R package for quantification of pinned microbial culture 
-Version: 1.0.4
-Date: 2014-01-23
+Title: An R Package for Quantification of Pinned Microbial Culture
+Version: 1.1
+Date: 2015-10-09
 Author: Omar Wagih, Leopold Parts
 Maintainer: Omar Wagih <wagih@ebi.ac.uk>
-Description: gitter is a image analysis package for R. Its primary goal is to allow users to robustly and quickly grid and quantify biological images of pinned colonies. It includes several image pre-processing techniques, such as autorotation of plates, noise removal, contrast adjustment and image resizing.
+Description: The goal of this package is to allow users to robustly
+    and quickly grid and quantify sizes of pinned colonies in plate images.
+    gitter works by first finding the grid of colonies from a preprocessed image
+    and then locating the bounds of each colony separately.
+    It includes several image pre-processing techniques, such
+    as autorotation of plates, noise removal, contrast adjustment and image
+    resizing.
 License: LGPL
-Imports: jpeg, tiff, logging, parallel, PET, ggplot2, EBImage
+Imports:
+    jpeg,
+    tiff,
+    logging,
+    PET,
+    ggplot2,
+    EBImage

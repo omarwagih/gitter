@@ -238,58 +238,52 @@
   return(im.grey)
 }
 
-.drawRect <- function(rects, im, color=1, int = 1){
+# .setRectRGB <- function(im, rect, channel, value){
+#   im[rect[3]:rect[4],rect[1],color] = int
+#   im[rect[3]:rect[4],rect[2],color] = int
+#   im[rect[3],rect[1]:rect[2],color] = int
+#   im[rect[4],rect[1]:rect[2],color] = int
+# }
+
+.drawRect <- function(rects, im, color='red', int = 1){
+  col.rgb = col2rgb(color)[,1]/255
   if( class(im) == 'matrix')
     im = .getColorImage(im)
   
   for(i in 1:nrow(rects)){
     rect = as.numeric(rects[i,])
-    im[rect[3]:rect[4],rect[1],] = 0
-    im[rect[3]:rect[4],rect[2],] = 0
-    im[rect[3],rect[1]:rect[2],] = 0
-    im[rect[4],rect[1]:rect[2],] = 0
+#     im[rect[3]:rect[4],rect[1],] = 0
+#     im[rect[3]:rect[4],rect[2],] = 0
+#     im[rect[3],rect[1]:rect[2],] = 0
+#     im[rect[4],rect[1]:rect[2],] = 0
     
-#     im[(rect[3]-1):(rect[4]+1),rect[1]-1,] = 0
-#     im[(rect[3]-1):(rect[4]+1),rect[2]+1,] = 0
-#     im[rect[3]-1,(rect[1]-1):(rect[2]+1),] = 0
-#     im[rect[4]+1,(rect[1]-1):(rect[2]+1),] = 0
+    im[rect[3]:rect[4],rect[1],1] = col.rgb[1]
+    im[rect[3]:rect[4],rect[2],1] = col.rgb[1]
+    im[rect[3],rect[1]:rect[2],1] = col.rgb[1]
+    im[rect[4],rect[1]:rect[2],1] = col.rgb[1]
+
+    im[rect[3]:rect[4],rect[1],2] = col.rgb[2]
+    im[rect[3]:rect[4],rect[2],2] = col.rgb[2]
+    im[rect[3],rect[1]:rect[2],2] = col.rgb[2]
+    im[rect[4],rect[1]:rect[2],2] = col.rgb[2]
     
-    im[rect[3]:rect[4],rect[1],color] = int
-    im[rect[3]:rect[4],rect[2],color] = int
-    im[rect[3],rect[1]:rect[2],color] = int
-    im[rect[4],rect[1]:rect[2],color] = int
+    im[rect[3]:rect[4],rect[1],3] = col.rgb[3]
+    im[rect[3]:rect[4],rect[2],3] = col.rgb[3]
+    im[rect[3],rect[1]:rect[2],3] = col.rgb[3]
+    im[rect[4],rect[1]:rect[2],3] = col.rgb[3]
     
-#     im[(rect[3]-1):(rect[4]+1),rect[1]-1,color] = int
-#     im[(rect[3]-1):(rect[4]+1),rect[2]+1,color] = int
-#     im[rect[3]-1,(rect[1]-1):(rect[2]+1),color] = int
-#     im[rect[4]+1,(rect[1]-1):(rect[2]+1),color] = int
   }
   return(im)
 }
 
-.drawPeaks <- function(peaks.c, peaks.r, im, color=1){
-  im[,peaks.c,] = 0.1
-  im[peaks.r,,] = 0.1
+.drawPeaks <- function(peaks.c, peaks.r, im, channel=1){
+  if(length(dim(im)) == 2) im = .getColorImage(im)
+  im[,peaks.c,channel] = 1
+  im[peaks.r,,channel] = 1
+  im[,peaks.c,-channel] = 0
+  im[peaks.r,,-channel] = 0
   return(im)
 }
-
-# print.gitter <- function(x){
-#   print('TODO')
-# }
-# Plotting methods
-# plot.gitter <- function(obj, color.low="red", color.med="black", color.high="green", row, col){
-#   p <- ggplot(x, aes(x=col, y=row, fill=colonysize)) +
-#     geom_tile(colour = "black",  asp=0.3) + 
-#     scale_fill_gradient(low='black', high='yellow', limits=c(minColSize,maxColSize)) +
-#     labs(x = "Column", y = "Row") +
-#     scale_y_reverse() + 
-#     scale_y_continuous(expand = c(0, 0), limits=c(1,32), breaks=1:32) + 
-#     scale_x_continuous(expand = c(0, 0), limits=c(1,48),  breaks=1:48) + 
-#     theme_bw(base_size=10)
-#   
-#   
-#   qplot(x=col, y=row, data=x, fill=colonysize, geom="tile", color="black") 
-# }
 
 .imageSpot <- function(x, title='Spot'){
   x = t(x)

@@ -1,3 +1,7 @@
+# Todo:
+# - give option to use discrete or continuous sum of pixels for quantification
+# - grid color option
+
 # z = setwd('~/Development/gitter/R')
 # #Import packages
 # library('EBImage')
@@ -8,26 +12,27 @@
 # library('PET')
 # library('ggplot2')
 # 
-# source('Peaks.R')
-# source('Help.R')
+# source('peaks.r')
+# source('help.r')
+# source('plot.r')
+# source('io.r')
 # setwd(z)
 
+# Current version
+.GITTER_VERSION = '1.1'
 
-.GITTER_VERSION = '1.0.4'
-
+# This message appears on library or require call of package
 .onAttach <- function(lib, pkg, ...) {
-#   writeLines(sprintf('gitter version %s - quantification of pinned microbial cultures\n', .GITTER_VERSION))
-#   writeLines('Copyright (C) 2014 Omar Wagih\n')
-#   writeLines("Type 'gitter.demo()' for a demo, '?gitter' for help ")
-#   writeLines("or see http://gitter.ccbr.utoronto.ca for more details")
   packageStartupMessage(sprintf("gitter version %s - quantification of pinned microbial cultures\n
-Copyright (C) 2014 Omar Wagih\n
+Copyright (C) 2015 Omar Wagih\n
 Type 'gitter.demo()' for a demo, '?gitter' for help 
 or see http://gitter.ccbr.utoronto.ca for more details", .GITTER_VERSION))
 }
 
+# Formats
 .pf = list('1536'=c(32,48),'768'=c(32,48),'384'=c(16,24),'96'=c(8,12))
 
+# Read image using appropriate functions, based on its format
 .readImage <- function(file){
   n = basename(file)
   if(grepl('*.jpg$|*.jpeg$', file, ignore.case=T)){
@@ -49,7 +54,15 @@ or see http://gitter.ccbr.utoronto.ca for more details", .GITTER_VERSION))
 }
 
 
-
+#' Run a demo of gitter
+#' 
+#' This function will run a demo of gitter.
+#' 
+#' @export
+#' 
+#' @param eg Type of demo. 1 for a single image demo, 1 for a single image demo using a reference image. Default is 1.
+#' @examples
+#' # gitter.demo()
 gitter.demo <- function(eg=1){
   if(!eg %in% c(1,2)) stop('Invalid example, please use 1 for a single image or 2 to process an image using a reference image')
   
@@ -77,6 +90,31 @@ gitter.demo <- function(eg=1){
   text <- paste(paste(record$timestamp, record$levelname, record$logger, record$msg, sep=':'))
 }
 
+#' Process a batch set of plate images
+#' 
+#' This function will process a directory or list of images in a batch. 
+#' You can also use this function to process images with sparse to empty rows/columns using a reference image.
+#' @keywords batch directory reference
+#' @param image.files Directory containing images OR a character vector of image paths.
+#' @param ref.image.file Specifies path to a reference image, which will be used to grid images specified in \code{image.files}.
+#' @param verbose See parameters in \code{\link{gitter}}.
+#' @param ... Additional parameters passed to \code{\link{gitter}}
+#' 
+#' @return \code{\link{gitter.batch}} does not return any values. DAT and gridded files are saved to their respective directories.
+#' 
+#' @export
+#' 
+#' @examples
+#' # Processing image using reference image
+
+#' # This image would typically fail to process, since its missing several rows
+#' f = system.file("extdata", "sample_dead.jpg", package="gitter")
+#' # We will use this image to successfully process the above image
+#' f.ref = system.file("extdata", "sample.jpg", package="gitter")
+#' # Process
+#' gitter.batch(f, f.ref)
+#' 
+#' # Remember: output files by default are saved to your working directory
 gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
   f = 'gitter_failed_images'
   ff = list.files(pattern=f)
@@ -135,7 +173,56 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
   #return(dats)
 }
 
-
+#' Process a single plate image 
+#' 
+#' The following function will grid and quantify a single plate image (for batch processing, see \code{\link{gitter.batch}})
+#' 
+#' @keywords gitter sga image process single
+#' 
+#' @param image.file The path to the image. Defaults to a file choosing dialog.
+#' @param plate.format The plate format, accepted formats: 1536, 768, 384 and 96. Alternatively, you can provide the number of rows and columns on the plate as an integer vector for example c(32,48). Default is 1536.
+#' @param remove.noise Logical indicating noise/speckles should be remove from the thresholded image prior to analysis. Default is \code{FALSE}.
+#' @param autorotate Logical indicating if image should be auto-rotated prior to processing. Only select this option if image is extremely rotated. gitter is able to handle small variations in rotations (1-2 degrees) without auto-rotating. Default is \code{FALSE}.
+#' @param inverse Logical indicating if input image is inverted, meaning colonies are darker compared to their background. Default is \code{FALSE}.
+#' @param verbose Shows details about the results of running job. For detailed logs "l", for a progress bar "p" or for no output "n". Default is "l".
+#' @param contrast Integer between 1 and 100 indicating how much contrast should be applied to the image, prior to processing. A value of \code{NULL} will not apply any contrast. Default is \code{NULL}.
+#' @param fast If set to integer value, the image will be resized to this width in pixels to speed up computation. This is useful for very large images that otherwise take a long time to process. We do not recommend resizing to fewer than 1500 pixels or greater that 4000 pixels in width. Default is \code{NULL}.
+#' @param plot Logical indicating whether intensity profiles should be plotted. Default is \code{FALSE}.
+#' @param grid.save Directory path to save gridded/thresholded images. Set to \code{NULL} if you do not want gridded images saved to disk. Default is the current working directory.
+#' @param dat.save Directory path to save resulting data files. Set to \code{NULL} if you do not want resulting data saved to disk. Default is the current working directory.
+#' @param .is.ref Specifies if a reference property list is supplied. Warning: NOT for use by casual users.
+#' @param .params Reference property list. Warning: NOT for use by casual users.
+#' 
+#' @export
+#' @import jpeg tiff logging ggplot2 EBImage stats utils 
+#' @importFrom PET radon
+#' @importFrom grid unit
+#' @importFrom graphics text abline lines par
+#' @importFrom grDevices col2rgb gray
+#' 
+#' @return 
+#' \item{ DAT file }{
+#'   Tab delimited file containing quantified colony sizes. There are two types of flags that can be associated with a data file 
+#'   (1) plate-level flags signify possible misgridding of the plate due to a high number of colonies with small size or low circularity. #' These flags can be viewed using the \code{\link{plate.warnings}} function 
+#'   (2) colony-based flags signify warnings associated with individual colonies. These flags can be viewed in the column named flags of #' the data file. 
+#'   \tabular{ll}{
+#'     row: \tab row number\cr
+#'     col: \tab column number\cr
+#'     size: \tab quantified colony size\cr
+#'     circularity: \tab circularity of the colony\cr
+#'     flags: \tab colony-based flags: S - Colony spill or edge interference, C- Low colony circularity\cr
+#'   }
+#' }
+#' 
+#' \item{ Gridded image }{Thresholded image showing the grid defined over the image}
+#' 
+#' @examples
+#' # Read sample image
+#' f = system.file("extdata", "sample.jpg", package="gitter")
+#' # Process it
+#' dat = gitter(f)
+#' # View head of the results
+#' head(dat)
 gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise=F, autorotate=F, 
                    inverse=F, verbose='l', contrast=NULL, fast=NULL, plot=F, grid.save=getwd(), 
                    dat.save=getwd(), .is.ref=F, .params=NULL){
@@ -212,9 +299,11 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     loginfo('\tDetected color image, extracting greyscale')
     # Luminosity grey scale from GIMP
     im.grey = (im[,,1]*0.72) + (im[,,2]*0.21) + (im[,,3]*0.07)
+    #im.grey = im[,,1]
   }else{
     loginfo('\tDetected greyscale image')
     im.grey = im
+    # no color information
   }
   
   if(autorotate){
@@ -252,7 +341,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     if(prog) setTxtProgressBar(pb, 50)
     loginfo('Denoising image... ')
     kern = makeBrush(3, 'diamond')
-    im.grey = openingGreyScale(im.grey, kern)
+    im.grey = opening(im.grey, kern)
   }
   
   
@@ -270,7 +359,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   if(is.ref){
     # Get peaks of sums
     if(plot) par(mfrow=c(2,1), bty='n', las=1)
-    z = nrow*ncol
+    z = nrow * ncol
     loginfo('Getting row peaks...')
     if(prog) setTxtProgressBar(pb, 65)
     cp.y = .colonyPeaks(sum.y, n=nrow, z, plot)
@@ -296,14 +385,13 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     coords = .params$coords
   }
   
-  
   # Window expansion factor
   d = round(w * expf)
   d = .roundOdd(d)
   
   if(prog) setTxtProgressBar(pb, 75)
   #Pad image
-  im.pad =  .padmatrix(im.grey, w, 1)
+  im.pad = .padmatrix(im.grey, w, 1)
   
   coords[,c('x','y')] = coords[,c('x','y')]+w
   coords$xl = coords$x - d
@@ -340,9 +428,21 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   if(prog) setTxtProgressBar(pb, 90)
   # Save gridded image
+ 
   if(!is.null(grid.save) & !.is.ref){
     #imr = drawPeaks(peaks.c=cp.y$peaks, peaks.r=cp.x$peaks, imr)
-    imr = .drawRect(coords[,3:6], im.grey)
+    imr = .drawRect(coords[,3:6], im.grey, color = 'orange')
+    
+    
+#     z = (im[,,1] - im[,,2] - im[,,3]) * im.grey
+#     z[z>0.2] = 1
+#     z[z<=0.2] = 0
+#     imr = imr/8
+#     imr[,,1][z==1] = 1
+#     imr[,,2][z==1] = 0
+#     imr[,,3][z==1] = 0
+    
+    # imr = .drawRect(coords[,3:6], imr, color = 'gray')
     #imr = im.grey
     save = file.path(grid.save, paste0('gridded_',basename(image.file)))
     loginfo('Saved gridded image to: %s', save)
@@ -351,7 +451,6 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     #writeJPEG(imr, save,1)
     writeJPEG(imr, save)
   }
-  
   if(prog) setTxtProgressBar(pb, 98)
   
   # Save dat file
@@ -378,10 +477,13 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   if(prog) setTxtProgressBar(pb, 100)
   if(prog) close(pb)
+  
   return(results)
 }
 
 
+
+# Threshold function
 .threshold <- function(im.grey, nrow, ncol, fast=T, f=1000, pb){
   prog = !is.null(pb)
   ptm <- proc.time()
@@ -393,7 +495,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     loginfo('Opening image with kernel size %s', si)
     kern = makeBrush(.roundOdd(si), 'box')
     if(prog) setTxtProgressBar(pb, 25)
-    op = openingGreyScale(im, kern)
+    op = opening(im, kern)
     if(prog) setTxtProgressBar(pb, 32)
     op = resize(op, w=nrow(im.grey), h=ncol(im.grey))
     if(prog) setTxtProgressBar(pb, 39)
@@ -408,7 +510,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     loginfo('Opening image with kernel size %s', si)
     kern = makeBrush(.roundOdd(si), 'box')
     if(prog) setTxtProgressBar(pb, 32)
-    im.grey = whiteTopHatGreyScale(im.grey, kern)
+    im.grey = whiteTopHat(im.grey, kern)
     # Find threshold
     if(prog) setTxtProgressBar(pb, 39)
     thresh = .findOptimalThreshold(im.grey)
@@ -422,6 +524,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   return(im.grey)
 }
 
+# Remove long streches of 1s (possibly lines)
 .rmRle <- function(im, p=0.2, margin=1){
   c = p * nrow(im)
   if(margin == 2){
@@ -474,7 +577,8 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     sum( z$b ) > ncol(x)*f
 }
 
-.fitRects <- function(coords, im.kmeans, d){
+# Fit rectangles for each colony
+.fitRects <- function(coords, im.grey, d){
   
   # Minimum border for really small colonies
   # Remove any decimals
@@ -485,12 +589,12 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     x = coords$x[i]
     y = coords$y[i]
     
-    cent.pixel = im.kmeans[y,x]
+    cent.pixel = im.grey[y,x]
     
     # Define expanded rectangle 
     rect = c(coords$xl[i], coords$xr[i], coords$yt[i], coords$yb[i])
     
-    spot.bw = im.kmeans[rect[3]:rect[4], rect[1]:rect[2]]
+    spot.bw = im.grey[rect[3]:rect[4], rect[1]:rect[2]]
     
     rs = rowSums(spot.bw)
     cs = colSums(spot.bw)
@@ -511,17 +615,6 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
             .yt(sp.y$left, minb), 
             .yb(sp.y$right, minb))
     }
-    
-#     if(i == 48){
-#       print(z)
-#       print(c(x.rel, y.rel))
-#       
-#       par(mfrow=c(1,2))
-#       plot(cs, type='l')
-#       abline(v=c(x.rel-z[1], x.rel+z[2]), col='red')
-#       plot(rs, type='l')
-#       abline(v=c(y.rel-z[3], x.rel+z[4]), col='blue')
-#     }
     
     rect.rel = c(x.rel - z[1], x.rel + z[2], y.rel - z[3], y.rel + z[4])
     spot.bw = spot.bw[rect.rel[3]:rect.rel[4], rect.rel[1]:rect.rel[2]]
@@ -550,7 +643,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   return(coords)
 }
 
-
+# Cross correlation 2d registration
 .register2d <- function(im, r2, c2, lag.max=100){
   r1 = rowSums(im)
   c1 = colSums(im)
@@ -563,171 +656,3 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   return(translate(im, c(y_s,x_s)))
 }
 
-
-.getFlags <- function(dat){
-  size_median = median(dat$size)
-  if(size_median == 0){
-    s = dat$size
-  }else{
-    s = dat$size / size_median
-  }
-  
-  c = dat$circularity
-  n = nrow(dat)
-  
-  fl = c()
-  # If 10% of colonies have colonies smaller than 0.1
-  if( (sum(s < 0.1) / n) > 0.1){
-    fl = append(fl, "1")
-  }
-  # If empty 
-  if( (sum(is.na(c) | c < 0.6) / n) > 0.1 ){
-    fl = append(fl, "2")
-  }
-  return(fl)
-}
-
-.flagMap = c("1"="high count of small colony sizes",
-             "2"="high count of low colony circularity")
-.warningPat = "# Warning possible misgridding: "
-
-
-.gitter.write <- function(dat, path){
-  hd = c(sprintf('# gitter v%s data file generated on %s', .GITTER_VERSION, format(Sys.time(), "%a %b %d %X %Y")))
-  id = .getFlags(dat)
-  id = id[id %in% names(.flagMap)]
-  fl = unname(.flagMap[id])
-  if(length(fl) > 0){
-    attr(dat, 'warnings') = fl
-    fl = sprintf(paste0(.warningPat, "%s"), paste0(fl, collapse=', '))
-    hd = append(hd, fl)
-  }
-  hd = append(hd, '# Flags: S - Colony spill or edge interference, C - Low colony circularity')
-  writeLines(hd, path)
-  cat('# ', file=path, append=T)
-  
-  suppressWarnings( write.table(dat, file=path, quote=F, sep='\t', row.names=F, col.names=T, append=T) )
-  loginfo('Saved dat file to: %s', path)
-  return(dat)
-}
-
-
-gitter.read <- function(path){
-  if(is.character(path)){
-    dat = read.table(path, stringsAsFactors=F, header=F, sep='\t')
-    names(dat) = c('row', 'col', 'size', 'circularity', 'flags')
-    
-    #Read first 5 lines
-    con  <- file(path, open = "r")
-    i = 1
-    while (length(line <- readLines(con, n = 1, warn = FALSE)) > 0) {
-      if(i > 5) break;
-      if(grepl(pattern=.warningPat, line)){
-        line = gsub(.warningPat, replacement="", line)
-        x = strsplit(line, ", ")[[1]]
-        x = x[x %in% .flagMap]
-        attr(dat, "warnings") = x
-      }
-    } 
-    close(con)
-  }else if(!is.data.frame(path)){
-    stop('Please enter the filepath to a gitter data file')
-  }
-  class(dat) = c('gitter', 'data.frame')
-  return(dat)
-}
-
-plate.warnings <- function(dat){
-  if(!is.data.frame(dat) & ! 'gitter' %in% class(dat)) stop('Argument must be a gitter data object')
-  return( attr(dat, 'warnings') )
-}
-
-plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
-                        show.text=F, text.color='white', norm=T, 
-                        show.flags=T, flag.color='white', ...){
-  dat = x
-#   if(is.character(dat)) dat = read.table(dat, stringsAsFactors=F, header=T)
-  if(!is.data.frame(dat) & ! 'gitter' %in% class(dat)) stop('Argument must be a gitter data object')
-  if(!type %in% c('heatmap', 'bubble')) stop('Invalid plot type. Use "heatmap" or "bubble"')
-  
-  if(length(dat) > 5 | length(dat) < 3) stop('Invalid number of columns for dat file')
-  
-  names(dat) = c('r', 'c', 's')
-  dat.cs = s = NULL
-  
-  r = max(dat$r)
-  c = max(dat$c)
-  
-  t = r:1
-  names(t) = 1:r
-  dat$r = t[as.character(dat$r)]
-  
-  srt = sort(dat$s)
-  pmm = mean( srt[ (0.4*length(srt)) : (0.6*length(srt)) ], na.rm=T)
-  if(norm){
-    dat$s = dat$s / pmm
-    pmm = 1
-    #dat$s = nrm(dat$s, 0.5, 1.5)
-    dat$s[dat$s < 0.5] = 0.5
-    dat$s[dat$s > 1.5] = 1.5
-  }
-  
-  if(length(dat) == 5){
-    names(dat)[5] = 'flags'
-    dat.cs = dat[dat$flags != "",] 
-  }
-  
-  if(type == 'heatmap'){
-    p <- ggplot(dat, aes(x = c, y = r, fill = s)) + 
-      geom_tile() +
-      scale_fill_gradient2(midpoint=pmm, low=low, high=high, mid=mid) + 
-      scale_x_discrete(expand = c(0, 0), limits = as.character(1:c)) +
-      scale_y_discrete(expand = c(0, 0), limits = as.character(r:1)) + 
-      coord_equal() +
-      theme_bw() +
-      labs(list(title = title, x = "Column", y = "Row", fill = "Size")) + 
-      theme(legend.position="right",title=element_text(size=14,face="bold"))
-  }
-  if(type == 'bubble'){
-    p = ggplot(dat, aes(x = c, y = r)) + 
-      geom_point(aes(x = c, y = r, size = s, colour = s),shape=16, alpha=0.80) +
-      scale_colour_gradient(low=low, high=high) +
-      scale_x_discrete(limits = as.character(1:c)) +
-      scale_y_discrete(limits = as.character(r:1)) +
-      coord_equal() +
-      labs(list(title = title, x = "Column", y = "Row", color = "Size", size=""))+
-      theme_bw() +
-      theme(title=element_text(size=14,face="bold"))
-  }
-  if(show.flags & !is.null(dat.cs) & nrow(dat.cs) != 0){
-    p = p + geom_point(aes(x=c, y=r), data=dat.cs, color=flag.color, size=1)
-  }
-  
-  if(show.text) p = p + geom_text(color = text.color, aes(label=s), size=3)
-  return(p)
-}
-
-summary.gitter <- function(object, ...){
-  d = object
-  pf = attr(d, 'format')
-  call = attr(d, 'call')
-  if(is.null(call)){
-    call = "not available"
-  }else{
-    call = deparse(call)
-  }
-  
-  writeLines(sprintf('# gitter v%s data file #', .GITTER_VERSION))
-  writeLines(sprintf('Function call: %s', call))
-  writeLines(sprintf('Elapsed time: %s secs', attr(d, 'elapsed')))
-  writeLines(sprintf('Plate format: %s x %s (%s)', pf[1], pf[2], prod(pf)))
-  writeLines('Colony size statistics:')
-  print(summary(d[[3]]))
-  writeLines('Dat file (first 6 rows):')
-  print(head(d))
-  w = attr(object, 'warnings')
-  if(! is.null(w)){
-    writeLines('Plate warnings:')
-    writeLines(paste0(w, collapse=', '))
-  }
-}

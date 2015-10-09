@@ -1,12 +1,21 @@
 setwd('~/Development/')
+require(devtools)
+remove.packages('gitter')
 
-#remove.packages('gitter', lib='/Library/Frameworks/R.framework/Versions/Current/Resources/library')
+targz = 'gitter_1.1.tar.gz'
+system(sprintf('rm -rf gitter/build/%s', targz))
 
-system('rm -rf gitter/build/gitter_1.0.4.tar.gz')
-#system('rm -rf gitter/man/*')
-system('R CMD build gitter')
+# Regenerate Rwd files
+document('gitter/')
 
-system('mv gitter_1.0.4.tar.gz gitter/build/gitter_1.0.4.tar.gz')
-#install.packages('gitter_1.0.tar.gz', repos = NULL, type="source")
+R_PATH = '/Library/Frameworks/R.framework/Versions/3.2/Resources/bin/R'
+# Build 
+system(sprintf('%s CMD build gitter', R_PATH))
+
+# Move into build directory
+system(sprintf('mv %s gitter/build/%s', targz, targz))
+
+# Install 
+system(sprintf('%s CMD INSTALL gitter/build/%s', R_PATH, targz))
 
 #detach("package:gitter", unload=TRUE)
