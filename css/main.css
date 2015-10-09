@@ -53,8 +53,18 @@ a, a:hover, a:active {
 	text-decoration: none
 }
 
-body {
+body, p {
 	font-family: 'Lato', sans-serif;
+	font-size: 18px;
+}
+
+.news-date{
+	font-weight: 700;
+	padding-right: 15px !important;
+}
+td{
+	vertical-align: top;
+	text-align: left;
 }
 
 @media (min-width: 1700px) { html { font-size: 188%; } }
