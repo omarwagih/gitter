@@ -19,7 +19,7 @@
 # setwd(z)
 
 # Current version
-.GITTER_VERSION = '1.1'
+.GITTER_VERSION = '1.1.1'
 
 # This message appears on library or require call of package
 .onAttach <- function(lib, pkg, ...) {
@@ -194,7 +194,7 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' @param .params Reference property list. Warning: NOT for use by casual users.
 #' 
 #' @export
-#' @import jpeg tiff logging ggplot2 EBImage stats utils 
+#' @import jpeg tiff logging ggplot2 EBImage stats utils
 #' @importFrom PET radon
 #' @importFrom grid unit
 #' @importFrom graphics text abline lines par

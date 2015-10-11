@@ -288,5 +288,5 @@
 .imageSpot <- function(x, title='Spot'){
   x = t(x)
   #x = round(x[nrow(x):1,])
-  image(x, col= gray(0:8 / 8), xaxt = "n", yaxt='n')
+  graphics::image(x, col= gray(0:8 / 8), xaxt = "n", yaxt='n')
 }

@@ -2,7 +2,7 @@ setwd('~/Development/')
 require(devtools)
 remove.packages('gitter')
 
-targz = 'gitter_1.1.tar.gz'
+targz = 'gitter_1.1.1.tar.gz'
 system(sprintf('rm -rf gitter/build/%s', targz))
 
 # Regenerate Rwd files

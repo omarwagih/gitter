@@ -127,15 +127,6 @@
   return(c(rep(FALSE, halfWindowSize), localMaxima, rep(FALSE, halfWindowSize)))
 }
 
-# .getPeakRange <- function(peak.coords, data, win, plot=T){
-#   sds = sapply(peak.coords, function(p){
-#     d = .getWindow(data, p, win/4)
-#     diff(range(d))
-#   })
-#   return(sds)
-# }
-
-
 
 .splitHalf <- function(vec){
   t = ceiling(length(vec)/2)#middle
