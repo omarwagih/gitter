@@ -2,13 +2,13 @@ setwd('~/Development/')
 require(devtools)
 remove.packages('gitter')
 
-targz = 'gitter_1.1.1.tar.gz'
+targz = 'gitter_1.1.2.tar.gz'
 system(sprintf('rm -rf gitter/build/%s', targz))
 
 # Regenerate Rwd files
 document('gitter/')
 
-R_PATH = '/Library/Frameworks/R.framework/Versions/3.2/Resources/bin/R'
+R_PATH = '/usr/local/bin/R'
 # Build 
 system(sprintf('%s CMD build gitter', R_PATH))
 

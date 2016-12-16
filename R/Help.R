@@ -120,13 +120,13 @@
   v[ (50*f) : (150*f) ] = 0
   
   a = (which.max(v)-1)/f
-  print(a)
+  #print(a)
   if(a > 90){
     a = a - degree.incr - 180
   } else{
     #a = a + degree.incr
   }
-  print(a)
+  #print(a)
   return( a )
 }
 

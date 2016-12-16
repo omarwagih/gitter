@@ -19,7 +19,7 @@
 # setwd(z)
 
 # Current version
-.GITTER_VERSION = '1.1.1'
+.GITTER_VERSION = '1.1.2'
 
 # This message appears on library or require call of package
 .onAttach <- function(lib, pkg, ...) {
@@ -184,12 +184,14 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' @param remove.noise Logical indicating noise/speckles should be remove from the thresholded image prior to analysis. Default is \code{FALSE}.
 #' @param autorotate Logical indicating if image should be auto-rotated prior to processing. Only select this option if image is extremely rotated. gitter is able to handle small variations in rotations (1-2 degrees) without auto-rotating. Default is \code{FALSE}.
 #' @param inverse Logical indicating if input image is inverted, meaning colonies are darker compared to their background. Default is \code{FALSE}.
+#' @param image.align Used when reference image is provided. Logical indicating if images should be aligned to reference. This corrects small camera shifts.
 #' @param verbose Shows details about the results of running job. For detailed logs "l", for a progress bar "p" or for no output "n". Default is "l".
 #' @param contrast Integer between 1 and 100 indicating how much contrast should be applied to the image, prior to processing. A value of \code{NULL} will not apply any contrast. Default is \code{NULL}.
 #' @param fast If set to integer value, the image will be resized to this width in pixels to speed up computation. This is useful for very large images that otherwise take a long time to process. We do not recommend resizing to fewer than 1500 pixels or greater that 4000 pixels in width. Default is \code{NULL}.
 #' @param plot Logical indicating whether intensity profiles should be plotted. Default is \code{FALSE}.
 #' @param grid.save Directory path to save gridded/thresholded images. Set to \code{NULL} if you do not want gridded images saved to disk. Default is the current working directory.
 #' @param dat.save Directory path to save resulting data files. Set to \code{NULL} if you do not want resulting data saved to disk. Default is the current working directory.
+#' @param .fx If the central pixel is a zero, set constant boundary with with size of this value 
 #' @param .is.ref Specifies if a reference property list is supplied. Warning: NOT for use by casual users.
 #' @param .params Reference property list. Warning: NOT for use by casual users.
 #' 
@@ -224,8 +226,8 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' # View head of the results
 #' head(dat)
 gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise=F, autorotate=F, 
-                   inverse=F, verbose='l', contrast=NULL, fast=NULL, plot=F, grid.save=getwd(), 
-                   dat.save=getwd(), .is.ref=F, .params=NULL){
+                   inverse=F, image.align = T, verbose='l', contrast=NULL, fast=NULL, plot=F, grid.save=getwd(), 
+                   dat.save=getwd(), .fx=2.0, .is.ref=F, .params=NULL){
   
 
   # Check if we have one number plate formats
@@ -326,7 +328,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   # Are we using a reference screen?
   is.ref = is.null(.params)
-  if(!is.ref){
+  if(!is.ref & image.align){
     if(prog) setTxtProgressBar(pb, 18)
     loginfo('Non-reference plate, registering image to reference')
     # Fix any shifts 
@@ -401,7 +403,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   loginfo('Fitting bounds...')
   if(prog) setTxtProgressBar(pb, 80)
-  coords = .fitRects(coords, im.pad, w)
+  coords = .fitRects(coords, im.pad, w, fixed_square=.fx)
   
   if(prog) setTxtProgressBar(pb, 84)
   im.grey = .unpadmatrix(im.pad, w)
@@ -578,7 +580,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
 }
 
 # Fit rectangles for each colony
-.fitRects <- function(coords, im.grey, d){
+.fitRects <- function(coords, im.grey, d, fixed_square=2){
   
   # Minimum border for really small colonies
   # Remove any decimals
@@ -604,7 +606,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     y.rel = y - rect[3]
     
     if(cent.pixel == 0){
-      z = rep( minb*2, 4)
+      z = rep( minb*fixed_square, 4)
     }else{
       # Sum rows and cols, split sums in half 
       sp.y = .splitHalf(rs)
