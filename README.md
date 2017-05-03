@@ -13,5 +13,5 @@ gitter allows robust and quick quantification of pinned colony sizes in plate im
 
 <small>
 If you use gitter, please cite the following work: <br>
-_Wagih, O. and Parts L. (2014) gitter: a robust and accurate method for quantification of colony sizes from plate images. G3 (Bethesda) pii: g3.113.009431v1_ <a href="http://www.ncbi.nlm.nih.gov/pubmed/24474170">pubmed</a>
+*Wagih, O. and Parts L. (2014) gitter: a robust and accurate method for quantification of colony sizes from plate images. G3 (Bethesda) pii: g3.113.009431v1* <a href="http://www.ncbi.nlm.nih.gov/pubmed/24474170">pubmed</a>
 </small>
