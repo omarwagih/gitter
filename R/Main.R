@@ -300,7 +300,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
     if(prog) setTxtProgressBar(pb, 9)
     loginfo('\tDetected color image, extracting greyscale')
     # Luminosity grey scale from GIMP
-    im.grey = (im[,,1]*0.72) + (im[,,2]*0.21) + (im[,,3]*0.07)
+    im.grey = (im[,,1]*0.21) + (im[,,2]*0.72) + (im[,,3]*0.07)
     #im.grey = im[,,1]
   }else{
     loginfo('\tDetected greyscale image')
