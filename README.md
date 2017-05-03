@@ -1,13 +1,14 @@
 <div>
-<img src="http://omarwagih.github.io/gitter/images/sample.jpg" width=300/>
-<img src="http://omarwagih.github.io/gitter/images/gridded_sample.jpg" width=300 style="display:inline"/>
+<img src="http://omarwagih.github.io/gitter/images/sample.jpg" width=350/>
+<img src="http://omarwagih.github.io/gitter/images/gridded_sample.jpg" width=350 style="display:inline"/>
 </div>
 
-# gitter: Quantification of Pinned Microbial Cultures
+# gitter: An R Package for Quantification of Pinned Microbial Cultures
+
 
 gitter allows robust and quick quantification of pinned colony sizes in plate images. gitter works by first finding the grid of colonies from a preprocessed image and then locating the bounds of each colony separately. It includes several image pre-processing techniques, such as autorotation of plates, noise removal, contrast adjustment and image resizing.
 
-**Please [http://omarwagih.github.io/gitter/]() for installation instructions, example code and documentation**
+**Please refer to [http://omarwagih.github.io/gitter/]() for installation instructions, example code and documentation**
 
 
 
