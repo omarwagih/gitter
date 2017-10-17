@@ -8,7 +8,7 @@
 
 gitter allows robust and quick quantification of pinned colony sizes in plate images. gitter works by first finding the grid of colonies from a preprocessed image and then locating the bounds of each colony separately. It includes several image pre-processing techniques, such as autorotation of plates, noise removal, contrast adjustment and image resizing.
 
-**Please refer to [http://omarwagih.github.io/gitter/]() for installation instructions, example code and documentation**
+**Please refer to [http://omarwagih.github.io/gitter/](http://omarwagih.github.io/gitter/) for installation instructions, example code and documentation**
 
 
 
