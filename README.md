@@ -10,6 +10,19 @@ gitter allows robust and quick quantification of pinned colony sizes in plate im
 
 **Please refer to [http://omarwagih.github.io/gitter/](http://omarwagih.github.io/gitter/) for installation instructions, example code and documentation**
 
+For github installation:
+
+```
+devtools::github_install('omarwagih/github')
+```
+
+Note: The package `PET` which is a dependency of gitter has been removed from CRAN so the auto-install may fail. To get around this, you can try manually installing `PET` from the [CRAN Archives](https://cran.r-project.org/src/contrib/Archive/PET/) before trying to install gitter i.e.:
+
+download [`PET_0.5.1.tar.gz`](https://cran.r-project.org/src/contrib/Archive/PET/PET_0.5.1.tar.gz) from the Archives, then run the following in your command line:
+
+```
+R CMD INSTALL PET_0.5.1.tar.gz
+```
 
 
 <small>
