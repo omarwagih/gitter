@@ -19,12 +19,12 @@
 # setwd(z)
 
 # Current version
-.GITTER_VERSION = '1.1.2'
+.GITTER_VERSION = '1.1.3'
 
 # This message appears on library or require call of package
 .onAttach <- function(lib, pkg, ...) {
   packageStartupMessage(sprintf("gitter version %s - quantification of pinned microbial cultures\n
-Copyright (C) 2015 Omar Wagih\n
+Copyright (C) 2021 Omar Wagih\n
 Type 'gitter.demo()' for a demo, '?gitter' for help 
 or see http://gitter.ccbr.utoronto.ca for more details", .GITTER_VERSION))
 }
@@ -150,11 +150,11 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
   failed.plates = c()
   for(image.file in image.files){
     result = tryCatch({ gitter(image.file, .params=params, .is.ref=F, verbose=verbose,...) }, 
-                error = function(e) { 
-                  logerror('Failed to process "%s", skipping', image.file)
-                  if(verbose == 'p') cat('\n')
-                  e
-                })
+                      error = function(e) { 
+                        logerror('Failed to process "%s", skipping', image.file)
+                        if(verbose == 'p') cat('\n')
+                        e
+                      })
     
     # If we have an error
     if('error' %in% class(result)){
@@ -191,6 +191,9 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' @param plot Logical indicating whether intensity profiles should be plotted. Default is \code{FALSE}.
 #' @param grid.save Directory path to save gridded/thresholded images. Set to \code{NULL} if you do not want gridded images saved to disk. Default is the current working directory.
 #' @param dat.save Directory path to save resulting data files. Set to \code{NULL} if you do not want resulting data saved to disk. Default is the current working directory.
+#' @param start.coords Allows the user to specify a grid manually. This is a vector of length two with x,y coordinates of the top left most spot. Must be set in conjunction with increment.coords. By default grid is auto-detected.
+#' @param increment.coords Allows the user to specify a grid manually. This is a vector of length two with distances between colonies on the x-axis and y-axis. Must be set in conjunction with start.coords. By default grid is auto-detected.
+#' @param dilation.factor If specified, colonies will be dilated using a kernel of this size in pixels (value must be an odd number and >= 3). This dilation is only for fitting boundaries and will not be applied for counting colony pixels. This option is useful for spotted colonies, which are difficult to grid. By default, factor is 0 and no dialation is applied. See https://homepages.inf.ed.ac.uk/rbf/HIPR2/dilate.htm for more info.
 #' @param .fx If the central pixel is a zero, set constant boundary with with size of this value 
 #' @param .is.ref Specifies if a reference property list is supplied. Warning: NOT for use by casual users.
 #' @param .params Reference property list. Warning: NOT for use by casual users.
@@ -227,9 +230,24 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' head(dat)
 gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise=F, autorotate=F, 
                    inverse=F, image.align = T, verbose='l', contrast=NULL, fast=NULL, plot=F, grid.save=getwd(), 
-                   dat.save=getwd(), .fx=2.0, .is.ref=F, .params=NULL){
+                   dat.save=getwd(), start.coords = NULL, increment.coords = NULL, dilation.factor=0,
+                   .fx=2.0, .is.ref=F, .params=NULL){
   
-
+  # Check start.coords and increment.coords
+  if(!is.null(start.coords)){
+    if(length(start.coords) != 2 || !is.numeric(start.coords)) stop('start.coords must be a numeric vector of length 2')
+    if(length(increment.coords) != 2) stop('increment.coords must be a numeric vector of length 2 provided in conjunction with start.coords')
+  }
+  
+  if(!is.null(increment.coords)){
+    if(length(increment.coords) != 2 || !is.numeric(increment.coords)) stop('increment.coords must be a numeric vector of length 2')
+    if(length(start.coords) != 2) stop('start.coords must be a numeric vector of length 2 provided in conjunction with increment.coords')
+  }
+  
+  if(!is.numeric(dilation.factor) || dilation.factor < 0){
+    stop('dilation.factor must be a numeric value greater than or equal to 0')
+  }
+  
   # Check if we have one number plate formats
   if(length(plate.format) == 1){
     t = as.character(plate.format)
@@ -357,23 +375,38 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   sum.x = .rmRle(im.grey, p=0.6, 2)
   
   #sum.x = colSums(im.grey)
-
+  
   if(is.ref){
     # Get peaks of sums
     if(plot) par(mfrow=c(2,1), bty='n', las=1)
     z = nrow * ncol
     loginfo('Getting row peaks...')
     if(prog) setTxtProgressBar(pb, 65)
-    cp.y = .colonyPeaks(sum.y, n=nrow, z, plot)
+    
+    if(length(start.coords) == 2){
+      loginfo('Using fixed row peaks')
+      cp.y = .colonyPeaksFixed(nrow, start.coords[2], increment.coords[2])
+    }else{
+      loginfo('Auto detecting row peaks')
+      cp.y = .colonyPeaks(sum.y, n=nrow, z, plot)
+    }
     
     loginfo('Getting column peaks...')
     if(prog) setTxtProgressBar(pb, 70)
-    cp.x = .colonyPeaks(sum.x, n=ncol,z, plot)
+    if(length(start.coords) == 2){
+      loginfo('Using fixed column peaks')
+      cp.x = .colonyPeaksFixed(ncol, start.coords[1], increment.coords[1])
+    }else{
+      loginfo('Auto detecting column peaks')
+      cp.x = .colonyPeaks(sum.x, n=ncol,z, plot)
+    }
+    
+    
     
     if(prog) setTxtProgressBar(pb, 73)
     # Average window (though they should be the same)
     w = round(mean( c(cp.x$window, cp.y$window) ))
-      
+    
     # Get center coordinates
     coords = expand.grid(cp.x$peaks, cp.y$peaks)
     names(coords) = c('x', 'y')
@@ -403,7 +436,17 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   loginfo('Fitting bounds...')
   if(prog) setTxtProgressBar(pb, 80)
-  coords = .fitRects(coords, im.pad, w, fixed_square=.fx)
+  
+  
+  #### Carry out dilation 
+  if(dilation.factor < 3){
+    kern = makeBrush(.roundOdd(dilation.factor), 'box')
+    op = dilate(im.pad, kern)
+  }else{
+    op = im.pad
+  }
+  
+  coords = .fitRects(coords, op, w, fixed_square=.fx, fixed_bounds_center_pixel = .cent.px)
   
   if(prog) setTxtProgressBar(pb, 84)
   im.grey = .unpadmatrix(im.pad, w)
@@ -430,19 +473,19 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   if(prog) setTxtProgressBar(pb, 90)
   # Save gridded image
- 
+  
   if(!is.null(grid.save) & !.is.ref){
     #imr = drawPeaks(peaks.c=cp.y$peaks, peaks.r=cp.x$peaks, imr)
     imr = .drawRect(coords[,3:6], im.grey, color = 'orange')
     
     
-#     z = (im[,,1] - im[,,2] - im[,,3]) * im.grey
-#     z[z>0.2] = 1
-#     z[z<=0.2] = 0
-#     imr = imr/8
-#     imr[,,1][z==1] = 1
-#     imr[,,2][z==1] = 0
-#     imr[,,3][z==1] = 0
+    #     z = (im[,,1] - im[,,2] - im[,,3]) * im.grey
+    #     z[z>0.2] = 1
+    #     z[z<=0.2] = 0
+    #     imr = imr/8
+    #     imr[,,1][z==1] = 1
+    #     imr[,,2][z==1] = 0
+    #     imr[,,3][z==1] = 0
     
     # imr = .drawRect(coords[,3:6], imr, color = 'gray')
     #imr = im.grey
@@ -580,7 +623,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
 }
 
 # Fit rectangles for each colony
-.fitRects <- function(coords, im.grey, d, fixed_square=2){
+.fitRects <- function(coords, im.grey, d, fixed_square=2, fixed_bounds_center_pixel=c(0)){
   
   # Minimum border for really small colonies
   # Remove any decimals
@@ -657,4 +700,3 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   return(translate(im, c(y_s,x_s)))
 }
-

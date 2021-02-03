@@ -14,9 +14,9 @@
   x = ksmooth(1:length(x), x, kernel='normal',bandwidth=bw)$y
   pks <- which(diff(sign(diff(x, na.pad = FALSE)), na.pad = FALSE) < 0) + 2
   
-#   plot(xo, type='l')
-#   lines(x, col='blue')
-#   abline(v=pks, col='red')
+  #   plot(xo, type='l')
+  #   lines(x, col='blue')
+  #   abline(v=pks, col='red')
   
   pks = sort(diff(pks), decreasing=T)
   pks = pks[1:(length(pks)/2)]
@@ -98,6 +98,15 @@
   }
   return(list(peaks=peaks, all.peaks=rp, window=delta/2))
 }
+
+
+.colonyPeaksFixed <- function(n, start.index, increment.index){
+  peaks = seq(start.index, by = increment.index, length.out = n)
+  return(
+    list( peaks = peaks, all.peaks = peaks, window=increment.index/2 )
+  ) 
+}
+
 
 .getWindow <- function(data, pos, window){
   win.left = window
