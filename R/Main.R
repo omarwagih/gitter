@@ -439,7 +439,8 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   
   #### Carry out dilation 
-  if(dilation.factor < 3){
+  if(dilation.factor >= 1){
+    loginfo(paste0('Dilating image with kernel size ', dilation.factor))
     kern = makeBrush(.roundOdd(dilation.factor), 'box')
     op = dilate(im.pad, kern)
   }else{
