@@ -18,4 +18,4 @@ Imports:
     logging,
     ggplot2,
     EBImage (>= 4.11.24)
-RoxygenNote: 5.0.1
+RoxygenNote: 7.1.2

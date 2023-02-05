@@ -4,11 +4,12 @@
 #' 
 #' @keywords plot visualize display bubble heatmap
 #' 
+#' @method plot gitter
 #' @export 
 #' 
 #' @param x The data.frame produced by \code{\link{gitter}} or the path to a dat file saved by \code{\link{gitter}}.
 #' @param title Title of plot. Default is blank.
-#' @param type Type of plot. "heatmap" for a heatmap, "bubble" for a bubble plot. Default is "heatmap".
+#' @param plot_type Type of plot. "heatmap" for a heatmap, "bubble" for a bubble plot. Default is "heatmap".
 #' @param low Color for the lower bound of colony sizes. Default is "turquoise".
 #' @param mid Color of the middle value of colony sizes. Default is "black".
 #' @param high Color for the upper bound of colony sizes. Default is "yellow".
@@ -27,16 +28,16 @@
 #' # Read in path as a gitter data object
 #' g = gitter.read(f)
 #' # Plot a heatmap
-#' plot(g, type="heatmap")
+#' plot(g, plot_type="heatmap")
 #' # Show a bubble plot
-#' plot(g, type="bubble", low="black", high="red")
-plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black', high='yellow', 
+#' plot(g, plot_type="bubble", low="black", high="red")
+plot.gitter <- function(x, title='', plot_type='heatmap', low='turquoise', mid='black', high='yellow', 
                         show.text=F, text.color='white', norm=T, 
                         show.flags=T, flag.color='white', ...){
   dat = x
   #   if(is.character(dat)) dat = read.table(dat, stringsAsFactors=F, header=T)
   if(!is.data.frame(dat) & ! 'gitter' %in% class(dat)) stop('Argument must be a gitter data object')
-  if(!type %in% c('heatmap', 'bubble')) stop('Invalid plot type. Use "heatmap" or "bubble"')
+  if(!plot_type %in% c('heatmap', 'bubble')) stop('Invalid plot type. Use "heatmap" or "bubble"')
   
   if(length(dat) > 5 | length(dat) < 3) stop('Invalid number of columns for dat file')
   
@@ -66,7 +67,7 @@ plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black
   }
   
   gitter_theme <- theme( axis.ticks = element_blank(), axis.ticks.margin=grid::unit(0,'cm') )
-  if(type == 'heatmap'){
+  if(plot_type == 'heatmap'){
     p <- ggplot(dat, aes(x = c, y = r, fill = s)) + 
       geom_tile() +
       scale_fill_gradient2(midpoint=pmm, low=low, high=high, mid=mid) + 
@@ -78,7 +79,7 @@ plot.gitter <- function(x, title='', type='heatmap', low='turquoise', mid='black
       theme(legend.position="right",title=element_text(size=14,face="bold")) +
       gitter_theme
   }
-  if(type == 'bubble'){
+  if(plot_type == 'bubble'){
     p = ggplot(dat, aes(x = c, y = r)) + 
       geom_point(aes(x = c, y = r, size = s, colour = s),shape=16, alpha=0.80) +
       scale_colour_gradient2(midpoint=pmm, low=low, mid=mid, high=high) +

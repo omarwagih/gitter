@@ -25,4 +25,3 @@ This function will show a brief summary of a data frame produced by \code{\link{
 \keyword{error}
 \keyword{plate}
 \keyword{warning}
-

@@ -23,4 +23,3 @@ This function will show warnings associated with a \code{\link{gitter}} data obj
 \keyword{error}
 \keyword{plate}
 \keyword{warning}
-

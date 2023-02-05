@@ -36,4 +36,3 @@ gitter.batch(f, f.ref)
 \keyword{batch}
 \keyword{directory}
 \keyword{reference}
-

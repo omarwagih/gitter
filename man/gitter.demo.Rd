@@ -15,4 +15,3 @@ This function will run a demo of gitter.
 \examples{
 # gitter.demo()
 }
-

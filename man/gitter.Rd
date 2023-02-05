@@ -4,11 +4,26 @@
 \alias{gitter}
 \title{Process a single plate image}
 \usage{
-gitter(image.file = file.choose(), plate.format = c(32, 48),
-  remove.noise = F, autorotate = F, inverse = F, image.align = T,
-  verbose = "l", contrast = NULL, fast = NULL, plot = F,
-  grid.save = getwd(), dat.save = getwd(), .fx = 2, .is.ref = F,
-  .params = NULL)
+gitter(
+  image.file = file.choose(),
+  plate.format = c(32, 48),
+  remove.noise = F,
+  autorotate = F,
+  inverse = F,
+  image.align = T,
+  verbose = "l",
+  contrast = NULL,
+  fast = NULL,
+  plot = F,
+  grid.save = getwd(),
+  dat.save = getwd(),
+  start.coords = NULL,
+  increment.coords = NULL,
+  dilation.factor = 0,
+  .fx = 2,
+  .is.ref = F,
+  .params = NULL
+)
 }
 \arguments{
 \item{image.file}{The path to the image. Defaults to a file choosing dialog.}
@@ -34,6 +49,12 @@ gitter(image.file = file.choose(), plate.format = c(32, 48),
 \item{grid.save}{Directory path to save gridded/thresholded images. Set to \code{NULL} if you do not want gridded images saved to disk. Default is the current working directory.}
 
 \item{dat.save}{Directory path to save resulting data files. Set to \code{NULL} if you do not want resulting data saved to disk. Default is the current working directory.}
+
+\item{start.coords}{Allows the user to specify a grid manually. This is a vector of length two with x,y coordinates of the top left most spot. Must be set in conjunction with increment.coords. By default grid is auto-detected.}
+
+\item{increment.coords}{Allows the user to specify a grid manually. This is a vector of length two with distances between colonies on the x-axis and y-axis. Must be set in conjunction with start.coords. By default grid is auto-detected.}
+
+\item{dilation.factor}{If specified, colonies will be dilated using a kernel of this size in pixels (value must be an odd number and >= 3). This dilation is only for fitting boundaries and will not be applied for counting colony pixels. This option is useful for spotted colonies, which are difficult to grid. By default, factor is 0 and no dialation is applied. See https://homepages.inf.ed.ac.uk/rbf/HIPR2/dilate.htm for more info.}
 
 \item{.fx}{If the central pixel is a zero, set constant boundary with with size of this value}
 
@@ -73,4 +94,3 @@ head(dat)
 \keyword{process}
 \keyword{sga}
 \keyword{single}
-

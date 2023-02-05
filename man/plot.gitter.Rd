@@ -4,16 +4,27 @@
 \alias{plot.gitter}
 \title{Plot a gitter dat file}
 \usage{
-plot.gitter(x, title = "", type = "heatmap", low = "turquoise",
-  mid = "black", high = "yellow", show.text = F, text.color = "white",
-  norm = T, show.flags = T, flag.color = "white", ...)
+\method{plot}{gitter}(
+  x,
+  title = "",
+  plot_type = "heatmap",
+  low = "turquoise",
+  mid = "black",
+  high = "yellow",
+  show.text = F,
+  text.color = "white",
+  norm = T,
+  show.flags = T,
+  flag.color = "white",
+  ...
+)
 }
 \arguments{
 \item{x}{The data.frame produced by \code{\link{gitter}} or the path to a dat file saved by \code{\link{gitter}}.}
 
 \item{title}{Title of plot. Default is blank.}
 
-\item{type}{Type of plot. "heatmap" for a heatmap, "bubble" for a bubble plot. Default is "heatmap".}
+\item{plot_type}{Type of plot. "heatmap" for a heatmap, "bubble" for a bubble plot. Default is "heatmap".}
 
 \item{low}{Color for the lower bound of colony sizes. Default is "turquoise".}
 
@@ -44,13 +55,12 @@ f = system.file("extdata", "sample.jpg.dat", package="gitter")
 # Read in path as a gitter data object
 g = gitter.read(f)
 # Plot a heatmap
-plot(g, type="heatmap")
+plot(g, plot_type="heatmap")
 # Show a bubble plot
-plot(g, type="bubble", low="black", high="red")
+plot(g, plot_type="bubble", low="black", high="red")
 }
 \keyword{bubble}
 \keyword{display}
 \keyword{heatmap}
 \keyword{plot}
 \keyword{visualize}
-

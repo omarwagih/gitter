@@ -25,4 +25,3 @@ g = gitter.read(f)
 \keyword{file}
 \keyword{gitter}
 \keyword{read}
-
