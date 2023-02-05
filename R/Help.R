@@ -80,126 +80,8 @@
   }
 }
 
-# .centerOfMass <- function(spot){
-#   area = sum(spot)
-#   y = sum( rowSums(s) * 1:nrow(s) )/area
-#   x = sum( colSums(s) * 1:ncol(s) )/area
-#   return(c(x,y))
-# }
-
 # Rotation methods
-
-
-.rotateAngle <- function(im.grey){
-  im = imageData(resize(im.grey, w=500))
-  # Resize image to square dimensions
-  m = min(dim(im))
-  im = im[1:m,1:m]
-  
-  # Radon transform
-  rad = radon(im)$rData
-  
-  # Compute row-wise variance & only allow +- 50 degrees
-  v = apply(rad, 1, var)
-  v[50:150] = 0
-  
-  return(which.max(v)-1)
-}
-
-.rotateAngle2 <- function(im.grey, degree.incr=0.2){
-  
-  im = imageData(resize(im.grey, h=500))
-  m = min(dim(im))
-  im = im[1:m,1:m]
-  # Radon transform
-  f = (1/degree.incr)
-  samp = ( 180 * f ) + 1
-  rad = radon(im, ThetaSamples=samp)$rData
-  # Compute row-wise variance & only allow +- 50 degrees
-  v = apply(rad, 1, var)
-  v[ (50*f) : (150*f) ] = 0
-  
-  a = (which.max(v)-1)/f
-  #print(a)
-  if(a > 90){
-    a = a - degree.incr - 180
-  } else{
-    #a = a + degree.incr
-  }
-  #print(a)
-  return( a )
-}
-
-
-.autoRotateImage2 <- function(im){
-  ptm <- proc.time()
-  
-  is.color = length(dim(im)) == 3
-  bw = im
-  if(is.color)
-    bw = im[,,1]
-  
-  a = .rotateAngle2(bw)
-  #if(a > 90) a = a - 180
-  loginfo('Rotate by %s degrees',  a )
-  im.rot = t(EBImage::rotate(t(bw), a))
-  
-  el = proc.time() - ptm
-  loginfo('Rotation took %s seconds', el[[3]])
-  return(im.rot)
-}
-
-# Autorotate
-# .autoRotateImage <- function(im){
-#   ptm <- proc.time()
-#   is.color = length(dim(im)) == 3
-#   bw = im
-#   if(is.color)
-#     bw = im[,,1]
-#   
-#   bw = openingGreyScale(resize(bw, h=200), makeBrush(5, 'box'))
-#   
-#   t = .findOptimalThreshold(as.vector(bw), lim=c(0,1), cap=1)
-#   bw = (bw > t)+0
-#   
-#   slope = .findSlope(bw)
-#   rad = atan(slope)
-#   deg = 360 - (rad*180/pi)
-#   rad = deg * pi/180
-#   loginfo('Rotate by %s degrees or %s radians',  deg, rad )
-#   
-#   if(deg >= 360) deg = deg-360
-#   if(deg < 360) deg = 360-deg
-#   #im.rot = rotateMatrix(im, rad, is.color)
-#   im.rot = rotate(im, deg)
-#   
-#   el = proc.time() - ptm
-#   loginfo('Rotation took %s seconds', el[[3]])
-#   
-#   #writeJPEG(im.rot, '~/Desktop/rotated.jpg')
-#   return(im.rot)
-# }
-
-# Depreciated, now using EBImage rotate
-.rotateMatrix <- function(im, theta, is.color=F){
-  bw = im
-  if(is.color) bw = bw[,,1]
-  y <- as.vector(row(bw))
-  x <- as.vector(col(bw))
-  
-  N = ncol(bw)
-  M = nrow(bw)
-  xy <- cbind(x+1-N/2,y+1-M/2) %*% matrix(c( cos(theta), sin(theta), -sin(theta), cos(theta) ), 2, 2)
-  f <- function(u, lower, upper) pmax(lower,pmin(round(u),upper))
-  # New coordinates
-  z = cbind(f(xy[,2] + M/2 - 1,1,M), f(xy[,1] + N/2 - 1,1,N))
-  if(is.color){
-    for(x in 1:3) im[,,x][] = im[,,x][z]
-  }else{
-    im[] = im[z]
-  }
-  return(im)
-}
+# Removed now
 
 .findSlope <- function(bw){
   i <- which(bw==1)
@@ -238,13 +120,6 @@
   return(im.grey)
 }
 
-# .setRectRGB <- function(im, rect, channel, value){
-#   im[rect[3]:rect[4],rect[1],color] = int
-#   im[rect[3]:rect[4],rect[2],color] = int
-#   im[rect[3],rect[1]:rect[2],color] = int
-#   im[rect[4],rect[1]:rect[2],color] = int
-# }
-
 .drawRect <- function(rects, im, color='red', int = 1){
   col.rgb = col2rgb(color)[,1]/255
   if( class(im) == 'matrix')
@@ -252,10 +127,6 @@
   
   for(i in 1:nrow(rects)){
     rect = as.numeric(rects[i,])
-#     im[rect[3]:rect[4],rect[1],] = 0
-#     im[rect[3]:rect[4],rect[2],] = 0
-#     im[rect[3],rect[1]:rect[2],] = 0
-#     im[rect[4],rect[1]:rect[2],] = 0
     
     im[rect[3]:rect[4],rect[1],1] = col.rgb[1]
     im[rect[3]:rect[4],rect[2],1] = col.rgb[1]
@@ -287,6 +158,5 @@
 
 .imageSpot <- function(x, title='Spot'){
   x = t(x)
-  #x = round(x[nrow(x):1,])
   graphics::image(x, col= gray(0:8 / 8), xaxt = "n", yaxt='n')
 }

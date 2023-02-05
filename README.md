@@ -16,7 +16,15 @@ For github installation:
 devtools::install_github('omarwagih/gitter')
 ```
 
-Note: The package `PET` which is a dependency of gitter has been removed from CRAN so the auto-install may fail. To get around this, you can try manually installing `PET` from the [CRAN Archives](https://cran.r-project.org/src/contrib/Archive/PET/) before trying to install gitter i.e.:
+
+## Note regarding depreciated dependency PET and autorotate feature
+
+
+**Update:** Since PET is no longer being actively maintained, I have removed it as a dependency. As a result, autorotate will no longer work in the latest version of gitter. If you would like to use the autorotate feature, you'll have to manually install PET (see below) and an older version of gitter.
+
+<br/>
+
+The package `PET` which is a dependency of gitter has been removed from CRAN so the auto-install may fail. To get around this, you can try manually installing `PET` from the [CRAN Archives](https://cran.r-project.org/src/contrib/Archive/PET/) before trying to install gitter i.e.:
 
 download [`PET_0.5.1.tar.gz`](https://cran.r-project.org/src/contrib/Archive/PET/PET_0.5.1.tar.gz) from the Archives, then run the following in your command line:
 

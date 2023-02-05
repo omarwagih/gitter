@@ -9,7 +9,6 @@
 # library('tiff')
 # library('logging')
 # library('parallel')
-# library('PET')
 # library('ggplot2')
 # 
 # source('peaks.r')
@@ -182,7 +181,7 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' @param image.file The path to the image. Defaults to a file choosing dialog.
 #' @param plate.format The plate format, accepted formats: 1536, 768, 384 and 96. Alternatively, you can provide the number of rows and columns on the plate as an integer vector for example c(32,48). Default is 1536.
 #' @param remove.noise Logical indicating noise/speckles should be remove from the thresholded image prior to analysis. Default is \code{FALSE}.
-#' @param autorotate Logical indicating if image should be auto-rotated prior to processing. Only select this option if image is extremely rotated. gitter is able to handle small variations in rotations (1-2 degrees) without auto-rotating. Default is \code{FALSE}.
+#' @param autorotate Logical indicating if image should be auto-rotated prior to processing. Only select this option if image is extremely rotated. gitter is able to handle small variations in rotations (1-2 degrees) without auto-rotating. Default is \code{FALSE}. 
 #' @param inverse Logical indicating if input image is inverted, meaning colonies are darker compared to their background. Default is \code{FALSE}.
 #' @param image.align Used when reference image is provided. Logical indicating if images should be aligned to reference. This corrects small camera shifts.
 #' @param verbose Shows details about the results of running job. For detailed logs "l", for a progress bar "p" or for no output "n". Default is "l".
@@ -200,7 +199,6 @@ gitter.batch <- function(image.files, ref.image.file=NULL, verbose='l', ...){
 #' 
 #' @export
 #' @import jpeg tiff logging ggplot2 EBImage stats utils
-#' @importFrom PET radon
 #' @importFrom grid unit
 #' @importFrom graphics text abline lines par
 #' @importFrom grDevices col2rgb gray
@@ -327,9 +325,11 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   }
   
   if(autorotate){
-    if(prog) setTxtProgressBar(pb, 14)
-    loginfo('Autorotating image...')
-    im.grey = .autoRotateImage2(im.grey)
+    stop(paste('Sorry, autorotate is no longer supported in the latest version of gitter as it',
+               'depends on a package "PET" that is no longer maintained in CRAN.'
+               'If you would like to use this feature you can install the older', 
+               'version of gitter from CRAN and manually install PET.', 
+               'See https://github.com/omarwagih/gitter/issues/5 for more information'))
   }
   
   if(!is.null(contrast)){
