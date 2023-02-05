@@ -18,14 +18,14 @@
 # setwd(z)
 
 # Current version
-.GITTER_VERSION = '1.1.3'
+.GITTER_VERSION = '1.1.4'
 
 # This message appears on library or require call of package
 .onAttach <- function(lib, pkg, ...) {
   packageStartupMessage(sprintf("gitter version %s - quantification of pinned microbial cultures\n
-Copyright (C) 2021 Omar Wagih\n
+Copyright (C) %s Omar Wagih\n
 Type 'gitter.demo()' for a demo, '?gitter' for help 
-or see http://gitter.ccbr.utoronto.ca for more details", .GITTER_VERSION))
+or see http://gitter.ccbr.utoronto.ca for more details", .GITTER_VERSION, format(Sys.Date(), "%Y")))
 }
 
 # Formats

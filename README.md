@@ -20,7 +20,7 @@ devtools::install_github('omarwagih/gitter')
 ## Note regarding depreciated dependency PET and autorotate feature
 
 
-**Update:** Since PET is no longer being actively maintained, I have removed it as a dependency. As a result, autorotate will no longer work in the latest version of gitter. If you would like to use the autorotate feature, you'll have to manually install PET (see below) and an older version of gitter.
+**Update:** Since PET is no longer being actively maintained, as of 1.1.4 I have removed it as a dependency. As a result, autorotate will no longer work in versions 1.1.4 and later. If you would like to use the autorotate feature, you'll have to manually install PET (see below) and an older version of gitter (<=1.1.3).
 
 <br/>
 
