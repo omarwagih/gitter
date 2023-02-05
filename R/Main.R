@@ -326,7 +326,7 @@ gitter <- function(image.file=file.choose(), plate.format=c(32,48), remove.noise
   
   if(autorotate){
     stop(paste('Sorry, autorotate is no longer supported in the latest version of gitter as it',
-               'depends on a package "PET" that is no longer maintained in CRAN.'
+               'depends on a package "PET" that is no longer maintained in CRAN.',
                'If you would like to use this feature you can install the older', 
                'version of gitter from CRAN and manually install PET.', 
                'See https://github.com/omarwagih/gitter/issues/5 for more information'))
